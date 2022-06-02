@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - rio
 - network-simple
+- aeson
 
 library:
   source-dirs: src
@@ -38,6 +39,7 @@ executables:
     dependencies:
     - haskell-chain
     - rio
+    - yaml
 
 tests:
   haskell-chain-test:

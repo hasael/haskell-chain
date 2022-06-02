@@ -1,0 +1,3 @@
+tcpConfig:
+  remotePort: 3080
+  localPort: 3081
