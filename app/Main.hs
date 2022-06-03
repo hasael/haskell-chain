@@ -12,11 +12,6 @@ import System.Environment
 import AppConfig
 import Prelude (print, head)
 
---main :: IO ()
---main = void $ concurrently someFunc $ do 
---    threadDelay 1000
---    clientFunc
-
 main :: IO ()
 main = do 
   args <- getArgs
@@ -33,7 +28,5 @@ readConfig = decodeFileThrow
 start :: FilePath -> IO ()
 start config = do
                 appConfig <- readConfig config
-                concurrently_ (serveFunc ( show $ localPort $ tcpConfig appConfig)) $ do 
-                    threadDelay 10000000
-                    clientFunc (show $ remotePort $ tcpConfig appConfig)
+                startPeer (remotePort $ tcpConfig appConfig) (localPort $ tcpConfig appConfig) 10000000
 

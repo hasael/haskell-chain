@@ -24,6 +24,7 @@ dependencies:
 - rio
 - network-simple
 - aeson
+- bytestring
 
 library:
   source-dirs: src
