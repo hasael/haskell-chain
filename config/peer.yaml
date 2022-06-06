@@ -1,3 +1,5 @@
 tcpConfig:
-  remotePort: 3080
   localPort: 3081
+  peers:
+    - ipAddress: "127.0.0.1"
+      peerPort: 3080

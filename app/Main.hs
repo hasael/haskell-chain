@@ -2,6 +2,7 @@
 -- stack --resolver lts-19.6 script
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 
 module Main where
 
@@ -28,5 +29,5 @@ readConfig = decodeFileThrow
 start :: FilePath -> IO ()
 start config = do
                 appConfig <- readConfig config
-                startPeer (remotePort $ tcpConfig appConfig) (localPort $ tcpConfig appConfig) 10000000
+                startPeer (localPort $ tcpConfig appConfig) (peers $ tcpConfig appConfig) 10000000
 

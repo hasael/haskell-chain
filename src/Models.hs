@@ -16,13 +16,15 @@ instance FromJSON Block
 
 instance ToJSON Block
 
-data MessageType = NewPeer | NewBlock deriving (Show , Generic)
+data MessageType = NewPeer | NewBlock | RequestPeers deriving (Show , Generic)
 
 data MessageData = NewPeerData {
-    peerAddr :: String
+    peerAddrs :: [String]
 } | NewBlockData {
     block :: Block
-} deriving (Show , Generic)
+} 
+  | RequestPeersData {} 
+  deriving (Show , Generic)
 
 data Message = Message {
     messageType :: MessageType,

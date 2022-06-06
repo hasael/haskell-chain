@@ -1,9 +1,12 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 
 module AppConfig where
 
 import Data.Aeson (FromJSON)
 import GHC.Generics (Generic)
+import Models
+import AppState
 
 newtype AppConfig = AppConfig
   { tcpConfig :: TCPConfig
@@ -11,11 +14,13 @@ newtype AppConfig = AppConfig
   deriving (Show, Generic)
 
 data TCPConfig = TCPConfig
-  { remotePort :: Int,
-    localPort :: Int
+  { localPort :: Int,
+    peers :: [Peer]
   }
   deriving (Show, Generic)
 
 instance FromJSON AppConfig
 
 instance FromJSON TCPConfig
+
+instance FromJSON Peer
