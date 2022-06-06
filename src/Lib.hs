@@ -14,9 +14,16 @@ import RIO.Time (hoursToTimeZone)
 
 
 startPeer :: Int -> [Peer] -> Int -> IO ()
-startPeer localPort peers delay =   concurrently_ (runReaderT (serveFunc localPort) $ AppState peers localPort) $ do 
+startPeer localPort peers delay = do 
+  appState <- newAppState localPort peers
+  concurrently_ (runReaderT (serveFunc localPort) appState) $ do 
                     threadDelay delay
                     testFunc $ head peers
+
+newAppState :: MonadIO m => Int -> [Peer] -> m AppState
+newAppState localPort peers = do
+    appPeers <- newTVarIO peers
+    return $ AppState appPeers localPort
 
 serveFunc :: Int -> AppHandler ()
 serveFunc port = do 
@@ -26,9 +33,10 @@ serveFunc port = do
   -- let block = Block "hash" "merkle" "timestamp" 10 ["trx a","trx b"]
   -- send connectionSocket $ toStrict $ encode block
         recvd <- recv connectionSocket 4000
+        peer <- findPeer appState (ipFromSocketAddress remoteAddr) port
         case recvd of 
             Just val ->  case readMsg val of
-                     Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT  (handleMessage msg (findPeer appState (ipFromSocketAddress remoteAddr) port) ) appState
+                     Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT (handleMessage msg peer) appState
                      Left e -> return ()
             _ -> print "no value received"
   -- Now you may use connectionSocket as you please within this scope,
@@ -42,7 +50,8 @@ handleMessage :: Message -> Peer -> AppHandler ()
 handleMessage msg peer = case msgData msg of
   RequestPeersData -> do
                appState <- ask
-               liftIO $ sendMessage peer $ Message NewPeer "timeStamp"  $ NewPeerData $ getStrPeers appState 
+               appPeers <- getPeers appState
+               liftIO $ sendMessage peer $ Message NewPeer "timeStamp"  $ NewPeerData appPeers 
   NewBlockData block -> liftIO $ print $ "Received " ++ show msg
   NewPeerData peers -> return ()
 

@@ -3,6 +3,7 @@
 module Models where
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics
+import AppState (Peer)
 
 data Block = Block {
     hash :: String,
@@ -19,7 +20,7 @@ instance ToJSON Block
 data MessageType = NewPeer | NewBlock | RequestPeers deriving (Show , Generic)
 
 data MessageData = NewPeerData {
-    peerAddrs :: [String]
+    peerAddrs :: [Peer]
 } | NewBlockData {
     block :: Block
 } 

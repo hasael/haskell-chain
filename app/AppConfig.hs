@@ -22,5 +22,3 @@ data TCPConfig = TCPConfig
 instance FromJSON AppConfig
 
 instance FromJSON TCPConfig
-
-instance FromJSON Peer

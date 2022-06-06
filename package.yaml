@@ -25,6 +25,8 @@ dependencies:
 - network-simple
 - aeson
 - bytestring
+- transformers
+- stm
 
 library:
   source-dirs: src
