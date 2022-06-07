@@ -15,4 +15,7 @@ handleMessage msg peer sendMessage = case msgData msg of
   NewPeerData peers -> do 
       appState <- ask
       addPeer appState peers
+      checkPeers <- getPeers appState
+      void $ liftIO $ print "new peers: " >> traverse (print . show) checkPeers
+
       

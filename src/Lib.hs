@@ -11,6 +11,7 @@ import Data.ByteString.Lazy (toStrict)
 import AppState 
 import RIO.State (StateT(runStateT))
 import RIO.Time (hoursToTimeZone)
+import MessageHandler
 
 
 startPeer :: Int -> [Peer] -> Int -> IO ()
@@ -36,7 +37,7 @@ serveFunc port = do
         peer <- findPeer appState (ipFromSocketAddress remoteAddr) port
         case recvd of 
             Just val ->  case readMsg val of
-                     Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT (handleMessage msg peer) appState
+                     Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT (handleMessage msg peer sendMessage) appState
                      Left e -> return ()
             _ -> print "no value received"
   -- Now you may use connectionSocket as you please within this scope,
@@ -46,8 +47,8 @@ serveFunc port = do
 testFunc :: Peer -> IO ()
 testFunc peer =  sendMessage peer $ Message RequestPeers "timeStamp"  RequestPeersData 
 
-handleMessage :: Message -> Peer -> AppHandler ()
-handleMessage msg peer = case msgData msg of
+handleMessageOld :: Message -> Peer -> AppHandler ()
+handleMessageOld msg peer = case msgData msg of
   RequestPeersData -> do
                appState <- ask
                appPeers <- getPeers appState
