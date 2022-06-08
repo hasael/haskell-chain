@@ -35,16 +35,17 @@ findPeer appState addr defaultPort = do
                             Just val -> return val
                             _ -> return $ Peer (IPAddress addr) $ Port defaultPort
 
-mergePeers :: [Peer] -> [Peer] -> [Peer]
-mergePeers existingPeers peers =
-    let newPeers = filter (\a -> not (elem a existingPeers)) peers in
+mergePeers :: [Peer] -> [Peer] -> [Peer] -> [Peer]
+mergePeers localPeers existingPeers peers =
+    let newPeers = filter (\a -> notElem a existingPeers && notElem a localPeers) peers in
         newPeers ++ existingPeers
 
 
 addPeer :: MonadIO m => AppState -> [Peer] -> m ()
 addPeer appState peers = atomically $ do
    exPeers <- readTVar $ appPeers appState
-   let newPeers = mergePeers exPeers peers
+   let localPeers = [Peer (IPAddress "127.0.0.1") (Port $ appLocalPort appState), Peer (IPAddress "localhost") (Port $ appLocalPort appState)]
+   let newPeers = mergePeers localPeers exPeers peers
    writeTVar (appPeers appState) newPeers
 
 instance FromJSON Peer
