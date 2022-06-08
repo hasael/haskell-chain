@@ -29,7 +29,7 @@ findPeer :: MonadIO m => AppState -> String -> Int -> m Peer
 findPeer appState addr defaultPort = do
     peers <- atomically $ do
         readTVar $ appPeers appState
-    let found = headMaybe $ filter (\peer -> ipAddress peer == IPAddress addr ) peers
+    let found = headMaybe $ filter (\peer -> ipAddress peer == IPAddress addr && Port defaultPort /= peerPort peer ) peers
                     in
                         case found of
                             Just val -> return val

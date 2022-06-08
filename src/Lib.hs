@@ -29,21 +29,29 @@ newAppState localPort peers = do
 serveFunc :: Int -> AppHandler ()
 serveFunc port = do 
    appState <- ask
+   liftIO $ listen (Host "127.0.0.1") (show port) $ \(connectionSocket, remoteAddr) -> do
+       putStrLn $ "Listening for TCP connections at " ++ show remoteAddr
+       forever . acceptFork connectionSocket $ \(csock, caddr) -> do 
+         putStrLn $ "Accepted incoming connection from " ++ show caddr
+         recvd <- recv csock 4096
+         peer <- findPeer appState (ipFromSocketAddress caddr) port
+         case recvd of 
+            Just val ->  case readMsg val of
+                     Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT (handleMessage msg peer sendMessage) appState
+                     Left e -> return ()
+            _ -> print "no value received"         
+{-
    serve (Host "127.0.0.1") (show port) $ \(connectionSocket, remoteAddr) -> do
         putStrLn $ "TCP connection established from " ++ show remoteAddr
-  -- let block = Block "hash" "merkle" "timestamp" 10 ["trx a","trx b"]
-  -- send connectionSocket $ toStrict $ encode block
-        recvd <- recv connectionSocket 4000
+        recvd <- recv connectionSocket 4096
         peer <- findPeer appState (ipFromSocketAddress remoteAddr) port
         case recvd of 
             Just val ->  case readMsg val of
                      Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT (handleMessage msg peer sendMessage) appState
                      Left e -> return ()
             _ -> print "no value received"
-  -- Now you may use connectionSocket as you please within this scope,
-  -- possibly using recv and send to interact with the remote end.
 
-
+-}
 testFunc :: Peer -> IO ()
 testFunc peer =  sendMessage peer $ Message RequestPeers "timeStamp"  RequestPeersData 
 
