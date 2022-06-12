@@ -40,30 +40,9 @@ serveFunc port = do
                      Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT (handleMessage msg peer sendMessage) appState
                      Left e -> return ()
             _ -> print "no value received"         
-{-
-   serve (Host "127.0.0.1") (show port) $ \(connectionSocket, remoteAddr) -> do
-        putStrLn $ "TCP connection established from " ++ show remoteAddr
-        recvd <- recv connectionSocket 4096
-        peer <- findPeer appState (ipFromSocketAddress remoteAddr) port
-        case recvd of 
-            Just val ->  case readMsg val of
-                     Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT (handleMessage msg peer sendMessage) appState
-                     Left e -> return ()
-            _ -> print "no value received"
 
--}
 testFunc :: Peer -> IO ()
 testFunc peer =  sendMessage peer $ Message RequestPeers "timeStamp"  RequestPeersData 
-
-handleMessageOld :: Message -> Peer -> AppHandler ()
-handleMessageOld msg peer = case msgData msg of
-  RequestPeersData -> do
-               appState <- ask
-               appPeers <- getPeers appState
-               liftIO $ sendMessage peer $ Message NewPeer "timeStamp"  $ NewPeerData appPeers 
-  NewBlockData block -> liftIO $ print $ "Received " ++ show msg
-  NewPeerData peers -> return ()
-
   
 readBlock :: ByteString -> Either String Block
 readBlock =  eitherDecodeStrict 

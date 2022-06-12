@@ -20,8 +20,9 @@ main = do
   let initArg = if not $ null args then Just $ head args else Nothing 
   print initArg
   case initArg of
-    Just "def" -> start "./config/default.yaml" 
-    _ -> start "./config/peer.yaml"
+    Just "1" -> start "./config/peer1.yaml" 
+    Just "2" -> start "./config/peer2.yaml" 
+    _ -> start "./config/default.yaml"
 
 readConfig :: FilePath -> IO AppConfig
 readConfig = decodeFileThrow 
