@@ -29,6 +29,7 @@ library
       Lib
       MessageHandler
       Models
+      Wallet
   other-modules:
       Paths_haskell_chain
   hs-source-dirs:
@@ -37,6 +38,8 @@ library
       aeson
     , base >=4.7 && <5
     , bytestring
+    , cryptonite
+    , memory
     , network-simple
     , rio
     , stm
@@ -55,7 +58,9 @@ executable haskell-chain-exe
       aeson
     , base >=4.7 && <5
     , bytestring
+    , cryptonite
     , haskell-chain
+    , memory
     , network-simple
     , rio
     , stm
@@ -75,7 +80,10 @@ test-suite haskell-chain-test
       aeson
     , base >=4.7 && <5
     , bytestring
+    , cryptonite
     , haskell-chain
+    , hspec
+    , memory
     , network-simple
     , rio
     , stm

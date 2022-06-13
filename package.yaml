@@ -27,6 +27,8 @@ dependencies:
 - bytestring
 - transformers
 - stm
+- cryptonite
+- memory
 
 library:
   source-dirs: src
@@ -54,3 +56,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - haskell-chain
+    - hspec
+    - cryptonite
