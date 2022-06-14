@@ -1,46 +1,18 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 
 module Models where
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics
-import AppState (Peer)
 
-data Block = Block {
-    hash :: String,
-    merkleRoot :: String,
-    timeStamp :: String,
-    nonce :: Int,
-    transactions :: [String]
-} deriving (Show , Generic)
+newtype Timestamp = Timestamp {timeStamp :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype IPAddress = IPAddress {getIpAddr :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype Port = Port {getPort :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype PublicKey = PublicKey {publicKey :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype HashValue = HashValue {hashValue :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype Signature = Signature {signature :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
-instance FromJSON Block 
+data Peer = Peer {ipAddress :: IPAddress, peerPort :: Port}   deriving (Show, Generic, Eq)
 
-instance ToJSON Block
-
-data MessageType = NewPeer | NewBlock | RequestPeers deriving (Show , Generic)
-
-data MessageData = NewPeerData {
-    peerAddrs :: [Peer]
-} | NewBlockData {
-    block :: Block
-} 
-  | RequestPeersData {} 
-  deriving (Show , Generic)
-
-data Message = Message {
-    messageType :: MessageType,
-    msgTimeStamp :: String,
-    msgData :: MessageData
-} deriving (Show , Generic)
-
-instance FromJSON MessageType 
-
-instance FromJSON MessageData
-
-instance FromJSON Message 
-
-instance ToJSON MessageType 
-
-instance ToJSON MessageData
-
-instance ToJSON Message 
+instance FromJSON Peer
+instance ToJSON Peer

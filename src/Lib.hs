@@ -12,6 +12,8 @@ import AppState
 import RIO.State (StateT(runStateT))
 import RIO.Time (hoursToTimeZone)
 import MessageHandler
+import Block
+import Messages
 
 
 startPeer :: Int -> [Peer] -> Int -> IO ()

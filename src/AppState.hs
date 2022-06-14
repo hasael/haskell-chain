@@ -1,15 +1,13 @@
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 
 module AppState where
 import RIO (ReaderT, TVar, atomically, readTVar, MonadIO, writeTVar)
 import GHC.Generics (Generic)
 import Data.Aeson ( FromJSON, ToJSON )
 import RIO.List (headMaybe)
+import Models
+    ( Peer(..), Port(Port), IPAddress(IPAddress, getIpAddr) )
 
-newtype IPAddress = IPAddress {getIpAddr :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
-newtype Port = Port {getPort :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
-data Peer = Peer {ipAddress :: IPAddress, peerPort :: Port}   deriving (Show, Generic, Eq)
 data AppState = AppState { appPeers :: TVar [Peer], appLocalPort :: Int}   deriving (Generic)
 
 type AppHandler = ReaderT AppState IO
@@ -47,7 +45,3 @@ addPeer appState peers = atomically $ do
    let localPeers = [Peer (IPAddress "127.0.0.1") (Port $ appLocalPort appState), Peer (IPAddress "localhost") (Port $ appLocalPort appState)]
    let newPeers = mergePeers localPeers exPeers peers
    writeTVar (appPeers appState) newPeers
-
-instance FromJSON Peer
-
-instance ToJSON Peer

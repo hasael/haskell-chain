@@ -4,6 +4,7 @@ import AppState
 import RIO
 import Control.Monad.Trans.Reader (withReaderT)
 import GHC.IO.Handle.Types (HandleType(AppendHandle))
+import Messages
 
 handleMessage :: Message -> Peer -> (Peer -> Message -> IO ()) -> AppHandler ()
 handleMessage msg peer sendMessage = case msgData msg of

@@ -26,9 +26,12 @@ source-repository head
 library
   exposed-modules:
       AppState
+      Block
       Lib
       MessageHandler
+      Messages
       Models
+      Transaction
       Wallet
   other-modules:
       Paths_haskell_chain
