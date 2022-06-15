@@ -58,3 +58,4 @@ tests:
     - haskell-chain
     - hspec
     - cryptonite
+    - base64-bytestring

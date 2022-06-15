@@ -33,6 +33,7 @@ library
       Models
       Transaction
       Wallet
+      WalletOld
   other-modules:
       Paths_haskell_chain
   hs-source-dirs:
@@ -82,6 +83,7 @@ test-suite haskell-chain-test
   build-depends:
       aeson
     , base >=4.7 && <5
+    , base64-bytestring
     , bytestring
     , cryptonite
     , haskell-chain

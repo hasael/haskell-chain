@@ -4,9 +4,11 @@ module Transaction where
 import Models
 import GHC.Generics
 import Data.Aeson (FromJSON, ToJSON)
+import Data.ByteString
+import Data.String (IsString(fromString))
 
 data TrxInput = TrxInput {
-    signature :: String,
+    signature :: Signature,
     publicKey :: PublicKey,
     previousTrx :: HashValue
 } deriving (Show , Generic)
@@ -28,6 +30,9 @@ data Transaction = Transaction {
     output :: TrxOutput,
     hash :: HashValue
 } deriving (Show , Generic)
+
+toByteStr :: Transaction -> ByteString
+toByteStr trx = fromString $ show trx
 
 instance FromJSON TrxInput
 instance FromJSON TrxOutput
