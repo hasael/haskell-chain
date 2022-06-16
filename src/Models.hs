@@ -8,7 +8,9 @@ import GHC.Generics
 newtype Timestamp = Timestamp {timeStamp :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 newtype IPAddress = IPAddress {getIpAddr :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 newtype Port = Port {getPort :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
-newtype PublicKey = PublicKey {publicKey :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype PublicAddress = PublicAddress {publicAddress :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype PrivateKeyValue = PrivateKeyValue {privateKeyValue :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+data SignatureValue = SignatureValue {signatureR :: Integer, signatureS :: Integer}   deriving (Show, Generic, Eq)
 newtype HashValue = HashValue {hashValue :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 data Signature = Signature {sign_r :: Integer, sign_s :: Integer}   deriving (Show, Generic, Eq)
 

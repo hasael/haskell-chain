@@ -29,6 +29,8 @@ dependencies:
 - stm
 - cryptonite
 - memory
+- base64-bytestring
+- utf8-string
 
 library:
   source-dirs: src
@@ -59,3 +61,4 @@ tests:
     - hspec
     - cryptonite
     - base64-bytestring
+    - utf8-string

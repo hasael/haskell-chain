@@ -9,12 +9,12 @@ import Data.String (IsString(fromString))
 
 data TrxInput = TrxInput {
     signature :: Signature,
-    publicKey :: PublicKey,
+    publicKey :: PublicAddress,
     previousTrx :: HashValue
 } deriving (Show , Generic)
 
 data TrxOutput = TrxOutput {
-    receiver :: PublicKey,
+    receiver :: PublicAddress,
     value :: Double
 } deriving (Show , Generic)
 
