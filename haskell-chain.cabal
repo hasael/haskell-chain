@@ -79,6 +79,7 @@ test-suite haskell-chain-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      TestHelpers
       Paths_haskell_chain
   hs-source-dirs:
       test

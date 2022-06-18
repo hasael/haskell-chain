@@ -1,7 +1,9 @@
 module Wallet (
     generateKeyPair,
     signMsg,
-    verifyMsg
+    verifyMsg,
+    signTransaction,
+    verifyTransaction
 ) where
 
 import RIO
@@ -33,6 +35,12 @@ signMsg privateKey msg = do
     signature <- sign (asProxyTypeOf Curve_P256R1) privateKeyDecoded SHA256 msg
     let ints = signatureToIntegers (asProxyTypeOf Curve_P256R1) signature
     return (uncurry M.SignatureValue ints)
+
+signTransaction :: (MonadRandom m) => M.PrivateKeyValue -> Transaction -> m M.SignatureValue
+signTransaction privateKey trx = signMsg privateKey $ trxToByteStr trx
+
+verifyTransaction :: M.PublicAddress -> M.SignatureValue -> Transaction -> Bool
+verifyTransaction publicKey signature trx = verifyMsg publicKey signature $ trxToByteStr trx
 
 verifyMsg :: ByteArrayAccess msg => M.PublicAddress -> M.SignatureValue -> msg -> Bool
 verifyMsg publicKey signature msg = verify (asProxyTypeOf Curve_P256R1) SHA256 (decodePublicKey publicKey) (decodeSignature signature) msg

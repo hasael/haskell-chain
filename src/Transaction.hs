@@ -20,19 +20,19 @@ data TrxOutput = TrxOutput {
 
 data Transaction = Transaction {
     timeStamp :: Timestamp,
-    version :: Int,
+    version :: Integer,
     input :: TrxInput,
     output :: TrxOutput,
     hash :: HashValue
 } | CoinbaseTransaction {
     timeStamp :: Timestamp,
-    version :: Int,
+    version :: Integer,
     output :: TrxOutput,
     hash :: HashValue
 } deriving (Show , Generic)
 
-toByteStr :: Transaction -> ByteString
-toByteStr trx = fromString $ show trx
+trxToByteStr :: Transaction -> ByteString
+trxToByteStr trx = fromString $ show trx
 
 instance FromJSON TrxInput
 instance FromJSON TrxOutput
