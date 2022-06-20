@@ -22,6 +22,7 @@ import TestHelpers
 import Wallet (signTransaction)
 import Transaction
 import Data.Aeson (ToJSON(toJSON))
+import RIO (concurrently, threadDelay)
 
 main :: IO ()
 main = hspec spec
@@ -56,11 +57,15 @@ spec = do
         let verifyRes = verifyTransaction (fst res) signature tamperedTrx
         verifyRes `shouldBe` False   
     it "same transactions have same hash" $ do
-        let testTrx = createCoinbaseTrx (PublicAddress "Addr") 10
-        let secondTrx = createCoinbaseTrx (PublicAddress "Addr") 10
-        (hash testTrx) `shouldBe` (hash secondTrx)   
+        let createTrxAction = (createCoinbaseTrx (PublicAddress "Addr") 10)
+        trxs <- concurrently  createTrxAction  createTrxAction
+        (hash (fst trxs)) `shouldBe` (hash (snd trxs))   
     it "different transactions have differemt hash" $ do
-        let testTrx = createCoinbaseTrx (PublicAddress "Addr") 10
-        let secondTrx = createCoinbaseTrx (PublicAddress "Addr") 9
+        testTrx <- createCoinbaseTrx (PublicAddress "Addr") 10
+        secondTrx <- createCoinbaseTrx (PublicAddress "Addr") 9
+        (hash testTrx) `shouldNotBe` (hash secondTrx) 
+    it "transactions of different times have differemt hash" $ do
+        testTrx <- createCoinbaseTrx (PublicAddress "Addr") 10
+        secondTrx <- threadDelay 1000000 >> createCoinbaseTrx (PublicAddress "Addr") 10
         (hash testTrx) `shouldNotBe` (hash secondTrx)   
         

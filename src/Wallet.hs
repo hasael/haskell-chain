@@ -23,6 +23,8 @@ import Models
 import Codec.Binary.UTF8.String as Utf8
 import Data.ByteString as BS
 import Crypto.Hash
+import System.Posix (epochTime)
+import Foreign.C (CTime (CTime))
 
 
 generateKeyPair :: (MonadRandom m) => m (M.PublicAddress, M.PrivateKeyValue )
@@ -45,8 +47,14 @@ signTransaction privateKey trx = signMsg privateKey $ trxToByteStr trx
 verifyTransaction :: M.PublicAddress -> M.SignatureValue -> Transaction -> Bool
 verifyTransaction publicKey signature trx = verifyMsg publicKey signature $ trxToByteStr trx
 
-createCoinbaseTrx :: M.PublicAddress -> Double -> Transaction
-createCoinbaseTrx publicKey amout = CoinbaseTransaction (Timestamp "Timestamp") 1 [TrxOutput publicKey amout] (HashValue (hashContent (BS.pack $ Utf8.encode ("Timestamp" ++ show [TrxOutput publicKey amout] ++ show 1 ))))
+createCoinbaseTrx :: M.PublicAddress -> Double -> IO Transaction
+createCoinbaseTrx publicKey amout = do
+     timeStamp <- epochTime
+     return $ CoinbaseTransaction (Timestamp (cTimeValue timeStamp)) 1 [TrxOutput publicKey amout] (HashValue (hashContent (BS.pack $ Utf8.encode (show timeStamp ++ show [TrxOutput publicKey amout] ++ show 1 ))))
+
+cTimeValue :: CTime -> Int64
+cTimeValue ctime = case ctime of
+    CTime val -> val
 
 hashContent :: ByteString -> String
 hashContent bs = Utf8.decode $ BA.unpack $ hashWith SHA3_512 bs

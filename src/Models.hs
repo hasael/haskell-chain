@@ -4,8 +4,9 @@
 module Models where
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics
+import Data.Int (Int64)
 
-newtype Timestamp = Timestamp {timeStamp :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype Timestamp = Timestamp {timeStamp :: Int64}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 newtype IPAddress = IPAddress {getIpAddr :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 newtype Port = Port {getPort :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 newtype PublicAddress = PublicAddress {publicAddress :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
