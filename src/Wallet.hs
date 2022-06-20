@@ -3,7 +3,8 @@ module Wallet (
     signMsg,
     verifyMsg,
     signTransaction,
-    verifyTransaction
+    verifyTransaction,
+    createCoinbaseTrx
 ) where
 
 import RIO
@@ -11,16 +12,18 @@ import Crypto.PubKey.ECDSA
 import Crypto.Error
 import Crypto.Random (MonadRandom)
 import Crypto.Hash.Algorithms
-import Data.ByteArray
+import Data.ByteArray as BA
 import Transaction
 import qualified Models as M
 import Data.ByteString.Base64 as B
 import Crypto.ECC as E
 import Crypto.PubKey.ECDSA
 import Data.Proxy (asProxyTypeOf)
-import Models (PublicAddress(PublicAddress))
+import Models
 import Codec.Binary.UTF8.String as Utf8
 import Data.ByteString as BS
+import Crypto.Hash
+
 
 generateKeyPair :: (MonadRandom m) => m (M.PublicAddress, M.PrivateKeyValue )
 generateKeyPair = do
@@ -41,6 +44,12 @@ signTransaction privateKey trx = signMsg privateKey $ trxToByteStr trx
 
 verifyTransaction :: M.PublicAddress -> M.SignatureValue -> Transaction -> Bool
 verifyTransaction publicKey signature trx = verifyMsg publicKey signature $ trxToByteStr trx
+
+createCoinbaseTrx :: M.PublicAddress -> Double -> Transaction
+createCoinbaseTrx publicKey amout = CoinbaseTransaction (Timestamp "Timestamp") 1 [TrxOutput publicKey amout] (HashValue (hashContent (BS.pack $ Utf8.encode ("Timestamp" ++ show [TrxOutput publicKey amout] ++ show 1 ))))
+
+hashContent :: ByteString -> String
+hashContent bs = Utf8.decode $ BA.unpack $ hashWith SHA3_512 bs
 
 verifyMsg :: ByteArrayAccess msg => M.PublicAddress -> M.SignatureValue -> msg -> Bool
 verifyMsg publicKey signature msg = verify (asProxyTypeOf Curve_P256R1) SHA256 (decodePublicKey publicKey) (decodeSignature signature) msg

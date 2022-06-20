@@ -20,6 +20,8 @@ import qualified Data.ByteArray as B
 import Codec.Binary.UTF8.String as Utf8
 import TestHelpers
 import Wallet (signTransaction)
+import Transaction
+import Data.Aeson (ToJSON(toJSON))
 
 main :: IO ()
 main = hspec spec
@@ -53,3 +55,12 @@ spec = do
         signature <- signTransaction (snd res) testTrx
         let verifyRes = verifyTransaction (fst res) signature tamperedTrx
         verifyRes `shouldBe` False   
+    it "same transactions have same hash" $ do
+        let testTrx = createCoinbaseTrx (PublicAddress "Addr") 10
+        let secondTrx = createCoinbaseTrx (PublicAddress "Addr") 10
+        (hash testTrx) `shouldBe` (hash secondTrx)   
+    it "different transactions have differemt hash" $ do
+        let testTrx = createCoinbaseTrx (PublicAddress "Addr") 10
+        let secondTrx = createCoinbaseTrx (PublicAddress "Addr") 9
+        (hash testTrx) `shouldNotBe` (hash secondTrx)   
+        

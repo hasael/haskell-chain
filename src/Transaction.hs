@@ -8,7 +8,7 @@ import Data.ByteString
 import Data.String (IsString(fromString))
 
 data TrxInput = TrxInput {
-    signature :: Signature,
+    signature :: SignatureValue,
     publicKey :: PublicAddress,
     previousTrx :: HashValue
 } deriving (Show , Generic)
@@ -22,12 +22,12 @@ data Transaction = Transaction {
     timeStamp :: Timestamp,
     version :: Integer,
     input :: TrxInput,
-    output :: TrxOutput,
+    output :: [TrxOutput],
     hash :: HashValue
 } | CoinbaseTransaction {
     timeStamp :: Timestamp,
     version :: Integer,
-    output :: TrxOutput,
+    output :: [TrxOutput],
     hash :: HashValue
 } deriving (Show , Generic)
 
