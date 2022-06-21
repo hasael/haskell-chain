@@ -25,6 +25,7 @@ import Data.Aeson (ToJSON(toJSON))
 import RIO as R (concurrently, threadDelay, length)
 import BlockChain
 import qualified Block as B
+import Models (Difficulty(Difficulty), Nonce (Nonce))
 
 
 main :: IO ()
@@ -81,14 +82,19 @@ spec = do
   describe "BlockChain" $ do
     it "adds block correctly" $ do
         let chain = [] :: BlockChain
-        newBlock <- mineBlock 0 chain 1
+        let pubAddr = PublicAddress "Addr"
+        let diff = Difficulty 0
+        let nonce = Nonce 1
+        newBlock <- mineBlock pubAddr diff chain nonce
         let newChain = addBlock newBlock chain
         (R.length newChain) `shouldBe` 1
     
     it "mines block correctly" $ do
         let chain = [] :: BlockChain
-        let difficulty = 2
-        newBlock <- mineBlock difficulty chain 1
+        let pubAddr = PublicAddress "Addr"
+        let diff = Difficulty 2
+        let nonce = Nonce 1
+        newBlock <- mineBlock pubAddr diff chain nonce
         let newChain = addBlock newBlock chain
         print newBlock
-        checkValidHashDifficulty (B.hash newBlock) difficulty `shouldBe` True
+        checkValidHashDifficulty (B.hash newBlock) diff `shouldBe` True

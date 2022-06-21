@@ -8,14 +8,14 @@ import Models
 import Transaction
 
 data Block = Block {
-    index :: Int,
-    difficulty :: Int,
+    index :: BlockIndex,
+    difficulty :: Difficulty,
     hash :: HashValue,
     merkleRoot :: HashValue,
     timeStamp :: Timestamp,
-    nonce :: Int,
+    nonce :: Nonce,
     transactions :: [Transaction],
-    version :: Int
+    version :: BlockVersion
 } deriving (Show , Generic)
 
 instance FromJSON Block 

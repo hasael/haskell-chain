@@ -1,10 +1,12 @@
 module BlockChain where
 
 import RIO
-import Block
+import Block as B
 import TimeService
 import Models as M
 import HashService
+import Wallet
+import Transaction (Transaction)
 
 type BlockChain = [Block]
 
@@ -14,24 +16,25 @@ addBlock block chain = chain ++ [block]
 getLastBlock :: BlockChain -> Block
 getLastBlock = last
 
-nextIndex :: BlockChain -> Int
-nextIndex chain = (+1) $ length chain
+nextIndex :: BlockChain -> BlockIndex
+nextIndex chain = BlockIndex $ (+1) $ length chain
 
-mineBlock :: Int -> BlockChain -> Int -> IO Block
-mineBlock difficulty chain nonce = do
+mineBlock :: PublicAddress -> Difficulty -> BlockChain -> Nonce -> IO Block
+mineBlock publicAddress diff chain nonce = do
     timeStamp <- getTimeStamp
     let lastIdx = nextIndex chain
-    let version = 1
-    let hashValue = calculateHash lastIdx difficulty timeStamp nonce
-    let valid = checkValidHashDifficulty hashValue difficulty 
+    let version = BlockVersion 1
+    coinbaseTrx <- createCoinbaseTrx publicAddress 10
+    let hashValue = calculateHash lastIdx diff timeStamp nonce coinbaseTrx
+    let valid = checkValidHashDifficulty hashValue diff 
     if valid then 
-        return $ Block lastIdx difficulty hashValue hashValue (Timestamp timeStamp) nonce [] version
+        return $ Block lastIdx diff hashValue hashValue (Timestamp timeStamp) nonce [coinbaseTrx] version
     else
-        mineBlock difficulty chain (nonce + 1)
+        mineBlock publicAddress diff chain (nonce + 1)
 
 
-calculateHash :: Int -> Int -> Int64 -> Int -> HashValue
-calculateHash lastIdx difficulty timeStamp nonce = HashValue $  hashContent $ show lastIdx ++ show difficulty ++ show timeStamp ++ show nonce
+calculateHash :: BlockIndex -> Difficulty -> Int64 -> Nonce -> Transaction -> HashValue
+calculateHash lastIdx difficulty timeStamp nonce trx = HashValue $  hashContent $ show lastIdx ++ show difficulty ++ show timeStamp ++ show nonce ++ show trx
 
-checkValidHashDifficulty :: HashValue -> Int -> Bool
-checkValidHashDifficulty hashValue difficulty = take difficulty (M.hashValue hashValue) == replicate difficulty '0'
+checkValidHashDifficulty :: HashValue -> Difficulty -> Bool
+checkValidHashDifficulty hashValue difficulty = take (M.difficulty difficulty) (M.hashValue hashValue) == replicate (M.difficulty difficulty) '0'

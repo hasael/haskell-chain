@@ -13,6 +13,10 @@ newtype PublicAddress = PublicAddress {publicAddress :: String}   deriving (Show
 newtype PrivateKeyValue = PrivateKeyValue {privateKeyValue :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 data SignatureValue = SignatureValue {signatureR :: Integer, signatureS :: Integer}   deriving (Show, Generic, Eq)
 newtype HashValue = HashValue {hashValue :: String}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype Nonce = Nonce {nonce :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq, Num)
+newtype Difficulty = Difficulty {difficulty :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype BlockIndex = BlockIndex {blockIndex :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
+newtype BlockVersion = BlockVersion {blockVersion :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
 data Peer = Peer {ipAddress :: IPAddress, peerPort :: Port}   deriving (Show, Generic, Eq)
 
