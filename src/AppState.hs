@@ -6,9 +6,13 @@ import GHC.Generics (Generic)
 import Data.Aeson ( FromJSON, ToJSON )
 import RIO.List (headMaybe)
 import Models
-    ( Peer(..), Port(Port), IPAddress(IPAddress, getIpAddr) )
+import BlockChain (BlockChain)
 
-data AppState = AppState { appPeers :: TVar [Peer], appLocalPort :: Int}   deriving (Generic)
+data AppState = AppState { appPeers :: TVar [Peer], appLocalPort :: Int, 
+  blockChain :: TVar BlockChain, 
+  mineDifficulty :: Difficulty, 
+  publicKey :: PublicAddress,
+  privateKey :: PrivateKeyValue}   deriving (Generic)
 
 type AppHandler = ReaderT AppState IO
 

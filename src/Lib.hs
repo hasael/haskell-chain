@@ -14,19 +14,46 @@ import RIO.Time (hoursToTimeZone)
 import MessageHandler
 import Block
 import Messages
-
+import Wallet
+import Crypto.Random (MonadRandom)
+import BlockChain 
 
 startPeer :: Int -> [Peer] -> Int -> IO ()
 startPeer localPort peers delay = do 
   appState <- newAppState localPort peers
-  concurrently_ (runReaderT (serveFunc localPort) appState) $ do 
+  concurrently_ (concurrently_ (runReaderT mineBlockProcess appState) (runReaderT (serveFunc localPort) appState)) $ do 
                     threadDelay delay
                     testFunc $ head peers
 
-newAppState :: MonadIO m => Int -> [Peer] -> m AppState
+newAppState :: (MonadIO m, MonadRandom m) => Int -> [Peer] -> m AppState
 newAppState localPort peers = do
     appPeers <- newTVarIO peers
-    return $ AppState appPeers localPort
+    keys <- generateKeyPair
+    chain <- newTVarIO []
+    let difficulty = Difficulty 2
+    return $ AppState appPeers localPort chain difficulty (fst keys) (snd keys)
+
+mineBlockProcess :: AppHandler ()
+mineBlockProcess = do
+  mineNewBlock
+  appState <- ask
+  chain <- readTVarIO $ blockChain appState 
+  liftIO $ print chain
+  threadDelay 5000000
+  mineBlockProcess
+
+mineNewBlock ::  AppHandler ()
+mineNewBlock = do
+  appState <- ask
+  chain <- readTVarIO $ blockChain appState 
+  let diff = mineDifficulty appState
+  let pubKey = publicKey appState
+  newBlock <- liftIO $ mineBlock pubKey diff chain $ Nonce 1
+  let newChain = addBlock newBlock chain
+  atomically $ 
+    writeTVar (blockChain appState) newChain
+  return ()
+
 
 serveFunc :: Int -> AppHandler ()
 serveFunc port = do 
@@ -44,7 +71,7 @@ serveFunc port = do
             _ -> print "no value received"         
 
 testFunc :: Peer -> IO ()
-testFunc peer =  sendMessage peer $ Message RequestPeers "timeStamp"  RequestPeersData 
+testFunc peer = return ()-- sendMessage peer $ Message RequestPeers "timeStamp"  RequestPeersData 
   
 readBlock :: ByteString -> Either String Block
 readBlock =  eitherDecodeStrict 
@@ -68,5 +95,3 @@ wordsWhen p s =  case dropWhile p s of
                       "" -> []
                       s' -> w : wordsWhen p s''
                             where (w, s'') = break p s'
-  -- Now you may use connectionSocket as you please within this scope,
-  -- possibly using recv and send to interact with the remote end.
