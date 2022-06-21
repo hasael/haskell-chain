@@ -22,7 +22,9 @@ import TestHelpers
 import Wallet (signTransaction)
 import Transaction
 import Data.Aeson (ToJSON(toJSON))
-import RIO (concurrently, threadDelay)
+import RIO as R (concurrently, threadDelay, length)
+import BlockChain
+
 
 main :: IO ()
 main = hspec spec
@@ -64,8 +66,15 @@ spec = do
         testTrx <- createCoinbaseTrx (PublicAddress "Addr") 10
         secondTrx <- createCoinbaseTrx (PublicAddress "Addr") 9
         (hash testTrx) `shouldNotBe` (hash secondTrx) 
-    it "transactions of different times have differemt hash" $ do
+    it "transactions of different times have different hash" $ do
         testTrx <- createCoinbaseTrx (PublicAddress "Addr") 10
         secondTrx <- threadDelay 1000000 >> createCoinbaseTrx (PublicAddress "Addr") 10
         (hash testTrx) `shouldNotBe` (hash secondTrx)   
-        
+
+  describe "BlockChain" $ do
+    it "adds block correctly" $ do
+        let chain = [] :: BlockChain
+        newBlock <- mineBlock 0 chain
+        let newChain = addBlock newBlock chain
+        print newBlock
+        (R.length newChain) `shouldBe` 1        

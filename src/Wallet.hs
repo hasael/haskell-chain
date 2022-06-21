@@ -50,14 +50,14 @@ verifyTransaction publicKey signature trx = verifyMsg publicKey signature $ trxT
 createCoinbaseTrx :: M.PublicAddress -> Double -> IO Transaction
 createCoinbaseTrx publicKey amout = do
      timeStamp <- epochTime
-     return $ CoinbaseTransaction (Timestamp (cTimeValue timeStamp)) 1 [TrxOutput publicKey amout] (HashValue (hashContent (BS.pack $ Utf8.encode (show timeStamp ++ show [TrxOutput publicKey amout] ++ show 1 ))))
+     return $ CoinbaseTransaction (Timestamp (cTimeValue timeStamp)) 1 [TrxOutput publicKey amout] (HashValue (hashContent ((show timeStamp ++ show [TrxOutput publicKey amout] ++ show 1 ))))
 
 cTimeValue :: CTime -> Int64
 cTimeValue ctime = case ctime of
     CTime val -> val
 
-hashContent :: ByteString -> String
-hashContent bs = Utf8.decode $ BA.unpack $ hashWith SHA3_512 bs
+hashContent :: String -> String
+hashContent bs = show $ hashWith SHA3_512 $ BS.pack $ Utf8.encode bs
 
 verifyMsg :: ByteArrayAccess msg => M.PublicAddress -> M.SignatureValue -> msg -> Bool
 verifyMsg publicKey signature msg = verify (asProxyTypeOf Curve_P256R1) SHA256 (decodePublicKey publicKey) (decodeSignature signature) msg

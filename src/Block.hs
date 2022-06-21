@@ -9,8 +9,9 @@ import Transaction
 
 data Block = Block {
     index :: Int,
+    difficulty :: Int,
     hash :: HashValue,
-    merkleRoot :: String,
+    merkleRoot :: HashValue,
     timeStamp :: Timestamp,
     nonce :: Int,
     transactions :: [Transaction],

@@ -27,10 +27,13 @@ library
   exposed-modules:
       AppState
       Block
+      BlockChain
+      HashService
       Lib
       MessageHandler
       Messages
       Models
+      TimeService
       Transaction
       Wallet
   other-modules:
