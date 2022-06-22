@@ -8,8 +8,9 @@ import GHC.Generics (Generic)
 import Models
 import AppState
 
-newtype AppConfig = AppConfig
-  { tcpConfig :: TCPConfig
+data AppConfig = AppConfig
+  { tcpConfig :: TCPConfig,
+    mineConfig :: MineConfig
   }
   deriving (Show, Generic)
 
@@ -19,6 +20,11 @@ data TCPConfig = TCPConfig
   }
   deriving (Show, Generic)
 
-instance FromJSON AppConfig
+data MineConfig = MineConfig {
+  mineDifficulty :: Int,
+  mineFrequency :: Int
+} deriving(Show, Generic)
 
+instance FromJSON AppConfig
 instance FromJSON TCPConfig
+instance FromJSON MineConfig

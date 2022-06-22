@@ -18,29 +18,29 @@ import Wallet
 import Crypto.Random (MonadRandom)
 import BlockChain 
 
-startPeer :: Int -> [Peer] -> Int -> IO ()
-startPeer localPort peers delay = do 
-  appState <- newAppState localPort peers
-  concurrently_ (concurrently_ (runReaderT mineBlockProcess appState) (runReaderT (serveFunc localPort) appState)) $ do 
+startPeer :: Int -> Int -> Int -> [Peer] -> Int -> IO ()
+startPeer mineFrequency difficulty localPort peers delay = do 
+  appState <- newAppState difficulty localPort peers
+  concurrently_ (concurrently_ (runReaderT (mineBlockProcess mineFrequency) appState) (runReaderT (serveFunc localPort) appState)) $ do 
                     threadDelay delay
                     testFunc $ head peers
 
-newAppState :: (MonadIO m, MonadRandom m) => Int -> [Peer] -> m AppState
-newAppState localPort peers = do
+newAppState :: (MonadIO m, MonadRandom m) => Int -> Int -> [Peer] -> m AppState
+newAppState diff localPort peers = do
     appPeers <- newTVarIO peers
     keys <- generateKeyPair
     chain <- newTVarIO []
-    let difficulty = Difficulty 2
+    let difficulty = Difficulty diff
     return $ AppState appPeers localPort chain difficulty (fst keys) (snd keys)
 
-mineBlockProcess :: AppHandler ()
-mineBlockProcess = do
+mineBlockProcess :: Int -> AppHandler ()
+mineBlockProcess frequency = do
   mineNewBlock
   appState <- ask
   chain <- readTVarIO $ blockChain appState 
   liftIO $ print chain
-  threadDelay 5000000
-  mineBlockProcess
+  threadDelay $ frequency * 1000000
+  mineBlockProcess frequency
 
 mineNewBlock ::  AppHandler ()
 mineNewBlock = do
