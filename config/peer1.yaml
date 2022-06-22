@@ -3,3 +3,6 @@ tcpConfig:
   peers:
     - ipAddress: "127.0.0.1"
       peerPort: 3080
+mineConfig:
+  mineDifficulty: 2
+  mineFrequency: 60
