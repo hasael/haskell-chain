@@ -1,87 +1,97 @@
+{-# LANGUAGE OverloadedStrings #-}
 
 module Lib
     ( startPeer
     ) where
 
 import Network.Simple.TCP
-import RIO 
+import RIO
 import Models
-import Data.Aeson 
-import Data.ByteString.Lazy (toStrict)
-import AppState 
-import RIO.State (StateT(runStateT))
+import Data.Aeson
+import Data.ByteString.Lazy  as BSL (toStrict, pack)
+import Data.ByteString as BS (unpack)
+import AppState
 import RIO.Time (hoursToTimeZone)
 import MessageHandler
 import Block
 import Messages
 import Wallet
 import Crypto.Random (MonadRandom)
-import BlockChain 
+import BlockChain
+import Database.LevelDB.Higher
+import Data.Maybe
+import qualified Codec.Binary.UTF8.String as Utf8
+import DbRepository
 
-startPeer :: Int -> Int -> Int -> [Peer] -> Int -> IO ()
-startPeer mineFrequency difficulty localPort peers delay = do 
-  appState <- newAppState difficulty localPort peers
-  concurrently_ (concurrently_ (runReaderT (mineBlockProcess mineFrequency) appState) (runReaderT (serveFunc localPort) appState)) $ do 
+startPeer :: Int -> Int -> Int -> [Peer] -> String -> Int -> IO ()
+startPeer mineFrequency difficulty localPort peers dbFilePath delay  = do
+  appState <- newAppState difficulty localPort peers dbFilePath
+  runReaderT loadBlock appState
+  concurrently_ (concurrently_ (runReaderT (mineBlockProcess mineFrequency) appState) (runReaderT (serveFunc localPort) appState)) $ do
                     threadDelay delay
                     testFunc $ head peers
 
-newAppState :: (MonadIO m, MonadRandom m) => Int -> Int -> [Peer] -> m AppState
-newAppState diff localPort peers = do
+newAppState :: (MonadIO m, MonadRandom m) => Int -> Int -> [Peer] -> String  -> m AppState
+newAppState diff localPort peers dbFilePath = do
     appPeers <- newTVarIO peers
-    keys <- generateKeyPair
+    keys <- liftIO $ getOrUpdateWalletKeys dbFilePath
     chain <- newTVarIO []
     let difficulty = Difficulty diff
-    return $ AppState appPeers localPort chain difficulty (fst keys) (snd keys)
+    return $ AppState appPeers localPort chain difficulty (fst keys) (snd keys) dbFilePath
 
 mineBlockProcess :: Int -> AppHandler ()
 mineBlockProcess frequency = do
   mineNewBlock
   appState <- ask
-  chain <- readTVarIO $ blockChain appState 
+  chain <- readTVarIO $ blockChain appState
   liftIO $ print chain
   threadDelay $ frequency * 1000000
   mineBlockProcess frequency
 
+
+
 mineNewBlock ::  AppHandler ()
 mineNewBlock = do
   appState <- ask
-  chain <- readTVarIO $ blockChain appState 
+  chain <- readTVarIO $ blockChain appState
   let diff = mineDifficulty appState
   let pubKey = publicKey appState
   newBlock <- liftIO $ mineBlock pubKey diff chain $ Nonce 1
+  savedBlock <- saveBlock newBlock
+ -- liftIO $ print savedBlock
   let newChain = addBlock newBlock chain
-  atomically $ 
+  atomically $
     writeTVar (blockChain appState) newChain
   return ()
 
 
 serveFunc :: Int -> AppHandler ()
-serveFunc port = do 
+serveFunc port = do
    appState <- ask
    liftIO $ listen (Host "127.0.0.1") (show port) $ \(connectionSocket, remoteAddr) -> do
        putStrLn $ "Listening for TCP connections at " ++ show remoteAddr
-       forever . acceptFork connectionSocket $ \(csock, caddr) -> do 
+       forever . acceptFork connectionSocket $ \(csock, caddr) -> do
          putStrLn $ "Accepted incoming connection from " ++ show caddr
          recvd <- recv csock 4096
          peer <- findPeer appState (ipFromSocketAddress caddr) port
-         case recvd of 
+         case recvd of
             Just val ->  case readMsg val of
                      Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT (handleMessage msg peer sendMessage) appState
                      Left e -> return ()
-            _ -> print "no value received"         
+            _ -> print "no value received"
 
 testFunc :: Peer -> IO ()
 testFunc peer = return ()-- sendMessage peer $ Message RequestPeers "timeStamp"  RequestPeersData 
-  
+
 readBlock :: ByteString -> Either String Block
-readBlock =  eitherDecodeStrict 
+readBlock =  eitherDecodeStrict
 
 readMsg :: ByteString -> Either String Message
-readMsg =  eitherDecodeStrict 
+readMsg =  eitherDecodeStrict
 
 sendMessage :: Peer -> Message -> IO ()
 sendMessage peer msg = do
-     putStrLn $ "Sending message" ++ show msg ++ " to " ++ show peer 
+     putStrLn $ "Sending message" ++ show msg ++ " to " ++ show peer
      connect (getIpAddr $ ipAddress peer) (show $ getPort $ peerPort peer) $ \(connectionSocket, remoteAddr) -> do
        send connectionSocket $ toStrict $ encode msg
        closeSock connectionSocket

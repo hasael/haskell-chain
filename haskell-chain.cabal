@@ -28,6 +28,7 @@ library
       AppState
       Block
       BlockChain
+      DbRepository
       HashService
       Lib
       MessageHandler
@@ -46,6 +47,7 @@ library
     , base64-bytestring
     , bytestring
     , cryptonite
+    , higher-leveldb
     , memory
     , network-simple
     , rio
@@ -70,6 +72,7 @@ executable haskell-chain-exe
     , bytestring
     , cryptonite
     , haskell-chain
+    , higher-leveldb
     , memory
     , network-simple
     , rio
@@ -96,6 +99,7 @@ test-suite haskell-chain-test
     , bytestring
     , cryptonite
     , haskell-chain
+    , higher-leveldb
     , hspec
     , memory
     , network-simple

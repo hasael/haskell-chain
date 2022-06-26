@@ -30,5 +30,5 @@ readConfig = decodeFileThrow
 start :: FilePath -> IO ()
 start config = do
                 appConfig <- readConfig config
-                startPeer (mineFrequency $ mineConfig appConfig) (mineDifficulty $ mineConfig appConfig) (localPort $ tcpConfig appConfig) (peers $ tcpConfig appConfig) 10000000
+                startPeer (mineFrequency $ mineConfig appConfig) (mineDifficulty $ mineConfig appConfig) (localPort $ tcpConfig appConfig) (peers $ tcpConfig appConfig) (dbFilePath $ dbConfig appConfig) 10000000
 

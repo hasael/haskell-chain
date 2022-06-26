@@ -8,11 +8,14 @@ import RIO.List (headMaybe)
 import Models
 import BlockChain (BlockChain)
 
-data AppState = AppState { appPeers :: TVar [Peer], appLocalPort :: Int, 
+data AppState = AppState { 
+  appPeers :: TVar [Peer], 
+  appLocalPort :: Int, 
   blockChain :: TVar BlockChain, 
   mineDifficulty :: Difficulty, 
   publicKey :: PublicAddress,
-  privateKey :: PrivateKeyValue}   deriving (Generic)
+  privateKey :: PrivateKeyValue,
+  dbFilePath :: String}   deriving (Generic)
 
 type AppHandler = ReaderT AppState IO
 

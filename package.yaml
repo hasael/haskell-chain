@@ -32,6 +32,7 @@ dependencies:
 - base64-bytestring
 - utf8-string
 - unix
+- higher-leveldb
 
 library:
   source-dirs: src

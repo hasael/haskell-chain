@@ -13,6 +13,9 @@ type BlockChain = [Block]
 addBlock :: Block -> BlockChain -> BlockChain
 addBlock block chain = chain ++ [block]
 
+loadBlocks :: [Block] -> BlockChain -> BlockChain
+loadBlocks blocks chain = chain ++ blocks
+
 getLastBlock :: BlockChain -> Block
 getLastBlock = last
 

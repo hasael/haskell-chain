@@ -10,7 +10,8 @@ import AppState
 
 data AppConfig = AppConfig
   { tcpConfig :: TCPConfig,
-    mineConfig :: MineConfig
+    mineConfig :: MineConfig,
+    dbConfig :: DbConfig
   }
   deriving (Show, Generic)
 
@@ -25,6 +26,11 @@ data MineConfig = MineConfig {
   mineFrequency :: Int
 } deriving(Show, Generic)
 
+data DbConfig = DbConfig {
+  dbFilePath :: String
+} deriving(Show, Generic)
+
 instance FromJSON AppConfig
 instance FromJSON TCPConfig
 instance FromJSON MineConfig
+instance FromJSON DbConfig

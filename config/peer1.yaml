@@ -6,3 +6,5 @@ tcpConfig:
 mineConfig:
   mineDifficulty: 2
   mineFrequency: 60
+dbConfig:
+  dbFilePath: "/tmp/chainDb1"
