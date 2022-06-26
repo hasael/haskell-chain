@@ -26,7 +26,7 @@ import DbRepository
 startPeer :: Int -> Int -> Int -> [Peer] -> String -> Int -> IO ()
 startPeer mineFrequency difficulty localPort peers dbFilePath delay  = do
   appState <- newAppState difficulty localPort peers dbFilePath
-  runReaderT loadBlock appState
+  runReaderT loadBlocksFromDb appState
   concurrently_ (concurrently_ (runReaderT (mineBlockProcess mineFrequency) appState) (runReaderT (serveFunc localPort) appState)) $ do
                     threadDelay delay
                     testFunc $ head peers
@@ -48,17 +48,25 @@ mineBlockProcess frequency = do
   threadDelay $ frequency * 1000000
   mineBlockProcess frequency
 
-
+loadBlocksFromDb :: AppHandler ()
+loadBlocksFromDb = do
+  appState <- ask
+  let filePath = dbFilePath appState
+  blocks <- liftIO $ loadDbBlocks filePath
+  chain <- readTVarIO $ blockChain appState
+  let newChain = loadBlocks blocks chain
+  atomically $
+    writeTVar (blockChain appState) newChain    
 
 mineNewBlock ::  AppHandler ()
 mineNewBlock = do
   appState <- ask
+  let filePath = dbFilePath appState
   chain <- readTVarIO $ blockChain appState
   let diff = mineDifficulty appState
   let pubKey = publicKey appState
   newBlock <- liftIO $ mineBlock pubKey diff chain $ Nonce 1
-  savedBlock <- saveBlock newBlock
- -- liftIO $ print savedBlock
+  saveBlock filePath newBlock
   let newChain = addBlock newBlock chain
   atomically $
     writeTVar (blockChain appState) newChain
