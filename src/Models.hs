@@ -18,7 +18,10 @@ newtype Difficulty = Difficulty {difficulty :: Int}   deriving (Show, Generic, F
 newtype BlockIndex = BlockIndex {blockIndex :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 newtype BlockVersion = BlockVersion {blockVersion :: Int}   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
-data Peer = Peer {ipAddress :: IPAddress, peerPort :: Port}   deriving (Show, Generic, Eq)
+data Peer = Peer {ipAddress :: IPAddress, peerPort :: Port, healthy :: Bool}   deriving (Show, Generic, Eq)
+
+peerFromData :: String -> Int -> Peer
+peerFromData ipAddr port = Peer (IPAddress ipAddr) (Port port) False
 
 instance FromJSON Peer
 instance ToJSON Peer

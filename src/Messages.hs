@@ -6,7 +6,7 @@ import GHC.Generics
 import Data.Aeson
 import Block
 
-data MessageType = NewPeer | NewBlock | RequestPeers deriving (Show , Generic)
+data MessageType = NewPeer | NewBlock | RequestPeers | RequestChain | ResponseChain deriving (Show , Generic)
 
 data MessageData = NewPeerData {
     peerAddrs :: [Peer]
@@ -14,6 +14,10 @@ data MessageData = NewPeerData {
     block :: Block
 } 
   | RequestPeersData {} 
+  | RequestChainData {}
+  | ResponseChainData {
+    chainSize :: Int
+  } 
   deriving (Show , Generic)
 
 data Message = Message {
@@ -21,6 +25,7 @@ data Message = Message {
     msgTimeStamp :: String,
     msgData :: MessageData
 } deriving (Show , Generic)
+
 
 instance FromJSON MessageType 
 

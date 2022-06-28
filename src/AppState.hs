@@ -6,7 +6,7 @@ import GHC.Generics (Generic)
 import Data.Aeson ( FromJSON, ToJSON )
 import RIO.List (headMaybe)
 import Models
-import BlockChain (BlockChain)
+import BlockChain (BlockChain, currentIndex)
 
 data AppState = AppState { 
   appPeers :: TVar [Peer], 
@@ -30,6 +30,12 @@ getPeers appState = do
    atomically $ do
     readTVar $ appPeers appState
 
+getHealthyPeers :: MonadIO m => AppState -> m [Peer]
+getHealthyPeers appState = do
+   peers <- atomically $ do
+    readTVar $ appPeers appState
+   return $ filter healthy peers
+
 findPeer :: MonadIO m => AppState -> String -> Int -> m Peer
 findPeer appState addr defaultPort = do
     peers <- atomically $ do
@@ -38,7 +44,7 @@ findPeer appState addr defaultPort = do
                     in
                         case found of
                             Just val -> return val
-                            _ -> return $ Peer (IPAddress addr) $ Port defaultPort
+                            _ -> return $ Peer (IPAddress addr) (Port defaultPort) True
 
 mergePeers :: [Peer] -> [Peer] -> [Peer] -> [Peer]
 mergePeers localPeers existingPeers peers =
@@ -49,6 +55,19 @@ mergePeers localPeers existingPeers peers =
 addPeer :: MonadIO m => AppState -> [Peer] -> m ()
 addPeer appState peers = atomically $ do
    exPeers <- readTVar $ appPeers appState
-   let localPeers = [Peer (IPAddress "127.0.0.1") (Port $ appLocalPort appState), Peer (IPAddress "localhost") (Port $ appLocalPort appState)]
+   let localPeers = [Peer (IPAddress "127.0.0.1") (Port $ appLocalPort appState) True, Peer (IPAddress "localhost") (Port $ appLocalPort appState) True]
    let newPeers = mergePeers localPeers exPeers peers
    writeTVar (appPeers appState) newPeers
+
+setPeerHealthy :: MonadIO m => AppState -> Peer -> m ()
+setPeerHealthy appState peer = atomically $ do
+   exPeers <- readTVar $ appPeers appState
+   let tempPeers = dropWhile (\p -> (ipAddress p == ipAddress peer) && (peerPort p == peerPort peer)) exPeers
+   let newPeers = tempPeers ++ [peer]
+   writeTVar (appPeers appState) newPeers
+
+getChainSize :: MonadIO m => AppState -> m BlockIndex
+getChainSize appState = do
+    chain <- atomically $ do
+        readTVar $ blockChain appState
+    return $ currentIndex chain

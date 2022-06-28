@@ -15,23 +15,22 @@ import RIO.Time (hoursToTimeZone)
 import MessageHandler
 import Block
 import Messages
-import Wallet
 import Crypto.Random (MonadRandom)
 import BlockChain
 import Database.LevelDB.Higher
-import Data.Maybe
 import qualified Codec.Binary.UTF8.String as Utf8
 import DbRepository
 
-startPeer :: Int -> Int -> Int -> [Peer] -> String -> Int -> IO ()
-startPeer mineFrequency difficulty localPort peers dbFilePath delay  = do
+startPeer :: Int -> Int -> Int -> [(String, Int)] -> String -> Int -> IO ()
+startPeer mineFrequency difficulty localPort peersData dbFilePath delay  = do
+  let peers = uncurry peerFromData <$> peersData
   appState <- newAppState difficulty localPort peers dbFilePath
   runReaderT loadBlocksFromDb appState
   concurrently_ (concurrently_ (runReaderT (mineBlockProcess mineFrequency) appState) (runReaderT (serveFunc localPort) appState)) $ do
                     threadDelay delay
                     testFunc $ head peers
 
-newAppState :: (MonadIO m, MonadRandom m) => Int -> Int -> [Peer] -> String  -> m AppState
+newAppState :: (MonadIO m, MonadRandom m) => Int -> Int -> [Peer] -> String -> m AppState
 newAppState diff localPort peers dbFilePath = do
     appPeers <- newTVarIO peers
     keys <- liftIO $ getOrUpdateWalletKeys dbFilePath

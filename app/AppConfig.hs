@@ -17,7 +17,7 @@ data AppConfig = AppConfig
 
 data TCPConfig = TCPConfig
   { localPort :: Int,
-    peers :: [Peer]
+    peers :: [PeerConfig]
   }
   deriving (Show, Generic)
 
@@ -30,6 +30,9 @@ data DbConfig = DbConfig {
   dbFilePath :: String
 } deriving(Show, Generic)
 
+data PeerConfig = PeerConfig {ipAddress :: IPAddress, peerPort :: Port}   deriving (Show, Generic, Eq)
+
+instance FromJSON PeerConfig
 instance FromJSON AppConfig
 instance FromJSON TCPConfig
 instance FromJSON MineConfig

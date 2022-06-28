@@ -12,6 +12,8 @@ import Data.Yaml
 import System.Environment
 import AppConfig
 import Prelude (print, head)
+import Models (IPAddress(getIpAddr), Port (getPort))
+
 
 main :: IO ()
 main = do 
@@ -30,5 +32,8 @@ readConfig = decodeFileThrow
 start :: FilePath -> IO ()
 start config = do
                 appConfig <- readConfig config
-                startPeer (mineFrequency $ mineConfig appConfig) (mineDifficulty $ mineConfig appConfig) (localPort $ tcpConfig appConfig) (peers $ tcpConfig appConfig) (dbFilePath $ dbConfig appConfig) 10000000
+                let p = peers $ tcpConfig appConfig 
+                let ips = getIpAddr . ipAddress  <$> p
+                let ports = getPort. peerPort  <$> p
+                startPeer (mineFrequency $ mineConfig appConfig) (mineDifficulty $ mineConfig appConfig) (localPort $ tcpConfig appConfig) (zip ips ports) (dbFilePath $ dbConfig appConfig) 10000000
 

@@ -22,6 +22,9 @@ getLastBlock = last
 nextIndex :: BlockChain -> BlockIndex
 nextIndex chain = BlockIndex $ (+1) $ length chain
 
+currentIndex :: BlockChain -> BlockIndex
+currentIndex chain = BlockIndex $ length chain
+
 mineBlock :: PublicAddress -> Difficulty -> BlockChain -> Nonce -> IO Block
 mineBlock publicAddress diff chain nonce = do
     timeStamp <- getTimeStamp
