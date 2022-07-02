@@ -25,9 +25,9 @@ nextIndex chain = BlockIndex $ (+1) $ length chain
 currentIndex :: BlockChain -> BlockIndex
 currentIndex chain = BlockIndex $ length chain
 
-mineBlock :: PublicAddress -> Difficulty -> BlockChain -> Nonce -> IO Block
+mineBlock :: MonadIO m => PublicAddress -> Difficulty -> BlockChain -> Nonce -> m Block
 mineBlock publicAddress diff chain nonce = do
-    timeStamp <- getTimeStamp
+    timeStamp <- liftIO getTimeStamp
     let lastIdx = nextIndex chain
     let version = BlockVersion 1
     coinbaseTrx <- createCoinbaseTrx publicAddress 10

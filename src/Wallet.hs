@@ -25,6 +25,7 @@ import Data.ByteString as BS
 import Crypto.Hash
 import System.Posix (epochTime)
 import Foreign.C (CTime (CTime))
+import TimeService
 
 
 generateKeyPair :: (MonadRandom m) => m (M.PublicAddress, M.PrivateKeyValue )
@@ -47,10 +48,10 @@ signTransaction privateKey trx = signMsg privateKey $ trxToByteStr trx
 verifyTransaction :: M.PublicAddress -> M.SignatureValue -> Transaction -> Bool
 verifyTransaction publicKey signature trx = verifyMsg publicKey signature $ trxToByteStr trx
 
-createCoinbaseTrx :: M.PublicAddress -> Double -> IO Transaction
+createCoinbaseTrx :: MonadIO m => M.PublicAddress -> Double -> m Transaction
 createCoinbaseTrx publicKey amout = do
-     timeStamp <- epochTime
-     return $ CoinbaseTransaction (Timestamp (cTimeValue timeStamp)) 1 [TrxOutput publicKey amout] (HashValue (hashContent ((show timeStamp ++ show [TrxOutput publicKey amout] ++ show 1 ))))
+     timeStamp <- liftIO getTimeStamp
+     return $ CoinbaseTransaction (Timestamp timeStamp) 1 [TrxOutput publicKey amout] (HashValue (hashContent ((show timeStamp ++ show [TrxOutput publicKey amout] ++ show 1 ))))
 
 cTimeValue :: CTime -> Int64
 cTimeValue ctime = case ctime of

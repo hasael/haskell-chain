@@ -5,8 +5,9 @@ import Models
 import GHC.Generics
 import Data.Aeson
 import Block
+import Data.Int (Int64)
 
-data MessageType = NewPeer | NewBlock | RequestPeers | RequestChain | ResponseChain deriving (Show , Generic)
+data MessageType = NewPeer | NewBlock | RequestPeers | RequestChain | ResponseChain | RequestBlock | ResponseBlock deriving (Show , Generic)
 
 data MessageData = NewPeerData {
     peerAddrs :: [Peer]
@@ -17,12 +18,18 @@ data MessageData = NewPeerData {
   | RequestChainData {}
   | ResponseChainData {
     chainSize :: Int
+  }
+  | RequestBlockData {
+    requestBlockIndex :: Int
   } 
+  | ResponseBlockData{
+    block :: Block
+  }
   deriving (Show , Generic)
 
 data Message = Message {
     messageType :: MessageType,
-    msgTimeStamp :: String,
+    msgTimeStamp :: Int64,
     msgData :: MessageData
 } deriving (Show , Generic)
 

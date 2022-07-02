@@ -6,13 +6,15 @@ import GHC.Generics (Generic)
 import Data.Aeson ( FromJSON, ToJSON )
 import RIO.List (headMaybe)
 import Models
-import BlockChain (BlockChain, currentIndex)
+import BlockChain (BlockChain, currentIndex, addBlock)
+import Block
+import Control.Monad
 
-data AppState = AppState { 
-  appPeers :: TVar [Peer], 
-  appLocalPort :: Int, 
-  blockChain :: TVar BlockChain, 
-  mineDifficulty :: Difficulty, 
+data AppState = AppState {
+  appPeers :: TVar [Peer],
+  appLocalPort :: Int,
+  blockChain :: TVar BlockChain,
+  mineDifficulty :: Difficulty,
   publicKey :: PublicAddress,
   privateKey :: PrivateKeyValue,
   dbFilePath :: String}   deriving (Generic)
@@ -71,3 +73,22 @@ getChainSize appState = do
     chain <- atomically $ do
         readTVar $ blockChain appState
     return $ currentIndex chain
+
+getChain :: MonadIO m => AppState -> m BlockChain
+getChain appState = do
+    atomically $ do
+        readTVar $ blockChain appState
+
+getBlock :: MonadIO m => BlockIndex -> AppState -> m Block
+getBlock idx appState = do
+    chain <- atomically $ do
+        readTVar $ blockChain appState
+    return $ head $ filter (\b -> index b == idx) chain
+
+addNewBlock :: MonadIO m => Block -> AppState -> m ()
+addNewBlock block appState = atomically $ do
+        chain <- readTVar $ blockChain appState
+        let newChain = addBlock block chain
+        let existsPeer = not (any (\b -> index b == index block) chain)
+        when existsPeer $
+          writeTVar (blockChain appState) newChain
