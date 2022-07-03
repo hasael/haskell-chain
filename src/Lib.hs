@@ -20,6 +20,7 @@ import BlockChain
 import Database.LevelDB.Higher
 import qualified Codec.Binary.UTF8.String as Utf8
 import DbRepository
+import Data.Map
 
 startPeer :: Int -> Int -> Int -> [(String, Int)] -> String -> Int -> IO ()
 startPeer mineFrequency difficulty localPort peersData dbFilePath delay  = do
@@ -31,18 +32,26 @@ startUp :: Int -> AppHandler ()
 startUp mineFrequency = do
   appState <- ask
   loadBlocksFromDb
-  concurrently_ (mineBlockProcess mineFrequency) $ concurrently_ (serveFunc $ appLocalPort appState) pingPeersProcess
+  concurrently_ (mineBlockProcess mineFrequency) $ concurrently_ (serveFunc $ appLocalPort appState) $ concurrently_ checkPeersBlocksProcess pingPeersProcess
 
 pingPeersProcess :: AppHandler ()
 pingPeersProcess = pingPeers sendMessage >> threadDelay 5000000 >> pingPeersProcess
+
+checkPeersBlocksProcess :: AppHandler ()
+checkPeersBlocksProcess = do
+  appState <- ask
+  liftIO $ checkPeersBlocks sendMessage appState
+  threadDelay 6000000
+  checkPeersBlocksProcess
 
 newAppState :: (MonadIO m, MonadRandom m) => Int -> Int -> [Peer] -> String -> m AppState
 newAppState diff localPort peers dbFilePath = do
     appPeers <- newTVarIO peers
     keys <- liftIO $ getOrUpdateWalletKeys dbFilePath
     chain <- newTVarIO []
+    peerState <- newTVarIO empty
     let difficulty = Difficulty diff
-    return $ AppState appPeers localPort chain difficulty (fst keys) (snd keys) dbFilePath
+    return $ AppState appPeers peerState localPort chain difficulty (fst keys) (snd keys) dbFilePath
 
 mineBlockProcess :: Int -> AppHandler ()
 mineBlockProcess frequency = do

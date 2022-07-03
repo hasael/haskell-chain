@@ -33,6 +33,7 @@ dependencies:
 - utf8-string
 - unix
 - higher-leveldb
+- containers
 
 library:
   source-dirs: src

@@ -5,6 +5,8 @@ import RIO
 import GHC.IO.Handle.Types (HandleType(AppendHandle))
 import Messages
 import TimeService
+import Data.Map.Strict as M
+import RIO.List (headMaybe)
 
 handleMessage :: Exception e => Message -> Peer -> (Peer -> Message -> IO (Either e ())) -> AppHandler ()
 handleMessage msg peer sendMessage = case msgData msg of
@@ -23,6 +25,7 @@ handleMessage msg peer sendMessage = case msgData msg of
   ResponseChainData chainSize -> do
       appState <- ask
       setPeerHealthy appState peer
+      setPeerState appState peer chainSize
   RequestChainData -> do
       appState <- ask
       chainSize <- getChainSize appState
@@ -54,3 +57,13 @@ handleSendMessage sendMessage msg peer appState = do
     case msgResult of
         Right a -> return a
         Left e -> setPeerUnhealthy appState peer
+
+checkPeersBlocks ::  (Peer -> Message -> IO (Either e ())) -> AppState -> IO ()
+checkPeersBlocks sendMsg appState = do
+    pState <- getPeersState appState
+    chainSize <- getChainSize appState
+    timeStamp <- getTimeStamp
+    let found = headMaybe $ keys $ M.filter (\a -> a > (blockIndex chainSize)) pState
+    case found of
+        Just p -> handleSendMessage sendMsg (Message RequestBlock timeStamp $ RequestBlockData (blockIndex chainSize)) p appState
+        _ -> return ()

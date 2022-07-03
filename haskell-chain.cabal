@@ -46,6 +46,7 @@ library
     , base >=4.7 && <5
     , base64-bytestring
     , bytestring
+    , containers
     , cryptonite
     , higher-leveldb
     , memory
@@ -70,6 +71,7 @@ executable haskell-chain-exe
     , base >=4.7 && <5
     , base64-bytestring
     , bytestring
+    , containers
     , cryptonite
     , haskell-chain
     , higher-leveldb
@@ -97,6 +99,7 @@ test-suite haskell-chain-test
     , base >=4.7 && <5
     , base64-bytestring
     , bytestring
+    , containers
     , cryptonite
     , haskell-chain
     , higher-leveldb

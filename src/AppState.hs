@@ -9,9 +9,12 @@ import Models
 import BlockChain (BlockChain, currentIndex, addBlock)
 import Block
 import Control.Monad
+import Data.Map (Map, insert)
+import Messages (MessageData(chainSize))
 
 data AppState = AppState {
   appPeers :: TVar [Peer],
+  peersState :: TVar (Map Peer Int),
   appLocalPort :: Int,
   blockChain :: TVar BlockChain,
   mineDifficulty :: Difficulty,
@@ -101,3 +104,14 @@ addNewBlock block appState = atomically $ do
         let existsPeer = not (any (\b -> index b == index block) chain)
         when existsPeer $
           writeTVar (blockChain appState) newChain
+
+setPeerState :: MonadIO m => AppState -> Peer -> Int -> m ()
+setPeerState appState peer chainSize =  atomically $ do
+        peerState <- readTVar $ peersState appState
+        let newState = insert peer chainSize peerState
+        writeTVar (peersState appState) newState
+
+getPeersState :: MonadIO m => AppState -> m (Map Peer Int)
+getPeersState appState = do
+    atomically $ do
+        readTVar $ peersState appState
