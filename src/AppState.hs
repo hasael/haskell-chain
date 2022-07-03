@@ -65,7 +65,16 @@ setPeerHealthy :: MonadIO m => AppState -> Peer -> m ()
 setPeerHealthy appState peer = atomically $ do
    exPeers <- readTVar $ appPeers appState
    let tempPeers = dropWhile (\p -> (ipAddress p == ipAddress peer) && (peerPort p == peerPort peer)) exPeers
-   let newPeers = tempPeers ++ [peer]
+   let newPeer = Peer (ipAddress peer) (peerPort peer) True
+   let newPeers = tempPeers ++ [newPeer]
+   writeTVar (appPeers appState) newPeers
+
+setPeerUnhealthy :: MonadIO m => AppState -> Peer -> m ()
+setPeerUnhealthy appState peer = atomically $ do
+   exPeers <- readTVar $ appPeers appState
+   let tempPeers = dropWhile (\p -> (ipAddress p == ipAddress peer) && (peerPort p == peerPort peer)) exPeers
+   let newPeer = Peer (ipAddress peer) (peerPort peer) False
+   let newPeers = tempPeers ++ [newPeer]
    writeTVar (appPeers appState) newPeers
 
 getChainSize :: MonadIO m => AppState -> m BlockIndex
@@ -79,11 +88,11 @@ getChain appState = do
     atomically $ do
         readTVar $ blockChain appState
 
-getBlock :: MonadIO m => BlockIndex -> AppState -> m Block
+getBlock :: MonadIO m => BlockIndex -> AppState -> m (Maybe Block)
 getBlock idx appState = do
     chain <- atomically $ do
         readTVar $ blockChain appState
-    return $ head $ filter (\b -> index b == idx) chain
+    return $ headMaybe $ filter (\b -> index b == idx) chain
 
 addNewBlock :: MonadIO m => Block -> AppState -> m ()
 addNewBlock block appState = atomically $ do

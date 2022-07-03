@@ -2,20 +2,20 @@ module MessageHandler where
 import Models
 import AppState
 import RIO
-import Control.Monad.Trans.Reader (withReaderT)
 import GHC.IO.Handle.Types (HandleType(AppendHandle))
 import Messages
 import TimeService
 
-handleMessage :: Message -> Peer -> (Peer -> Message -> IO ()) -> AppHandler ()
+handleMessage :: Exception e => Message -> Peer -> (Peer -> Message -> IO (Either e ())) -> AppHandler ()
 handleMessage msg peer sendMessage = case msgData msg of
   RequestPeersData -> do
-               appState <- ask
-               peers <- getHealthyPeers appState
-               timeStamp <- liftIO getTimeStamp
-               liftIO $ sendMessage peer $ Message NewPeer timeStamp $ NewPeerData peers 
+      appState <- ask
+      peers <- getHealthyPeers appState
+      timeStamp <- liftIO getTimeStamp
+      let newMsg = Message NewPeer timeStamp $ NewPeerData peers
+      liftIO $ handleSendMessage sendMessage newMsg peer appState
   NewBlockData block -> liftIO $ print $ "Received " ++ show msg
-  NewPeerData peers -> do 
+  NewPeerData peers -> do
       appState <- ask
       addPeer appState peers
       checkPeers <- getPeers appState
@@ -27,14 +27,30 @@ handleMessage msg peer sendMessage = case msgData msg of
       appState <- ask
       chainSize <- getChainSize appState
       timeStamp <- liftIO getTimeStamp
-      liftIO $ sendMessage peer $ Message ResponseChain timeStamp $ ResponseChainData $ blockIndex chainSize
+      let newMsg = Message ResponseChain timeStamp $ ResponseChainData $ blockIndex chainSize
+      liftIO $ handleSendMessage sendMessage newMsg peer appState
   RequestBlockData idx -> do
       appState <- ask
-      block <- getBlock (BlockIndex idx) appState
+      maybeBlock <- getBlock (BlockIndex idx) appState
       timeStamp <- liftIO getTimeStamp
-      liftIO $ sendMessage peer $ Message ResponseBlock timeStamp $ ResponseBlockData block
+      case maybeBlock of
+        Just block -> liftIO $ handleSendMessage sendMessage (Message ResponseBlock timeStamp $ ResponseBlockData block) peer appState 
+        _ -> return ()
   ResponseBlockData block -> do
       appState <- ask
       addNewBlock block appState
 
-      
+pingPeers ::  (Peer -> Message -> IO (Either e ())) -> AppHandler ()
+pingPeers sendMessage = do
+    appState <- ask
+    peers <- getPeers appState
+    timeStamp <- liftIO getTimeStamp
+    let msg = Message RequestChain timeStamp RequestChainData
+    liftIO $ sequence_ $ (`sendMessage` msg) <$> peers
+
+handleSendMessage :: (Peer -> Message -> IO (Either e ())) -> Message -> Peer -> AppState -> IO ()
+handleSendMessage sendMessage msg peer appState = do
+    msgResult <-  sendMessage peer msg
+    case msgResult of
+        Right a -> return a
+        Left e -> setPeerUnhealthy appState peer

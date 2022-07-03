@@ -25,10 +25,16 @@ startPeer :: Int -> Int -> Int -> [(String, Int)] -> String -> Int -> IO ()
 startPeer mineFrequency difficulty localPort peersData dbFilePath delay  = do
   let peers = uncurry peerFromData <$> peersData
   appState <- newAppState difficulty localPort peers dbFilePath
-  runReaderT loadBlocksFromDb appState
-  concurrently_ (concurrently_ (runReaderT (mineBlockProcess mineFrequency) appState) (runReaderT (serveFunc localPort) appState)) $ do
-                    threadDelay delay
-                    testFunc $ head peers
+  runReaderT (startUp mineFrequency) appState
+
+startUp :: Int -> AppHandler ()
+startUp mineFrequency = do
+  appState <- ask
+  loadBlocksFromDb
+  concurrently_ (mineBlockProcess mineFrequency) $ concurrently_ (serveFunc $ appLocalPort appState) pingPeersProcess
+
+pingPeersProcess :: AppHandler ()
+pingPeersProcess = pingPeers sendMessage >> threadDelay 5000000 >> pingPeersProcess
 
 newAppState :: (MonadIO m, MonadRandom m) => Int -> Int -> [Peer] -> String -> m AppState
 newAppState diff localPort peers dbFilePath = do
@@ -55,7 +61,7 @@ loadBlocksFromDb = do
   chain <- readTVarIO $ blockChain appState
   let newChain = loadBlocks blocks chain
   atomically $
-    writeTVar (blockChain appState) newChain    
+    writeTVar (blockChain appState) newChain
 
 mineNewBlock ::  AppHandler ()
 mineNewBlock = do
@@ -84,11 +90,8 @@ serveFunc port = do
          case recvd of
             Just val ->  case readMsg val of
                      Right msg -> putStrLn ("Received " ++ show msg) >> runReaderT (handleMessage msg peer sendMessage) appState
-                     Left e -> return ()
+                     Left e -> void (putStrLn ("Error pasrsing message " ++ show e))
             _ -> print "no value received"
-
-testFunc :: Peer -> IO ()
-testFunc peer = return ()-- sendMessage peer $ Message RequestPeers "timeStamp"  RequestPeersData 
 
 readBlock :: ByteString -> Either String Block
 readBlock =  eitherDecodeStrict
@@ -96,8 +99,15 @@ readBlock =  eitherDecodeStrict
 readMsg :: ByteString -> Either String Message
 readMsg =  eitherDecodeStrict
 
-sendMessage :: Peer -> Message -> IO ()
-sendMessage peer msg = do
+--sendMessage :: Peer -> Message -> IO ()
+--sendMessage peer msg = do
+--  sendMsgIo <- tryIO $ sendMessageInner peer msg
+--  case sendMsgIo of
+--    Right a -> return a
+--    Left e -> void (print e)
+
+sendMessage :: Peer -> Message -> IO (Either IOException ())
+sendMessage peer msg = tryIO $ do
      putStrLn $ "Sending message" ++ show msg ++ " to " ++ show peer
      connect (getIpAddr $ ipAddress peer) (show $ getPort $ peerPort peer) $ \(connectionSocket, remoteAddr) -> do
        send connectionSocket $ toStrict $ encode msg
@@ -105,7 +115,6 @@ sendMessage peer msg = do
 
 ipFromSocketAddress :: SockAddr -> String
 ipFromSocketAddress sockAddr =  head $ wordsWhen (==':') $ show sockAddr
-
 
 wordsWhen :: (Char -> Bool) -> String -> [String]
 wordsWhen p s =  case dropWhile p s of
