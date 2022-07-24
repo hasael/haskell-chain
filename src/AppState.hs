@@ -20,7 +20,7 @@ data AppState = AppState {
   mineDifficulty :: Difficulty,
   publicKey :: PublicAddress,
   privateKey :: PrivateKeyValue,
-  dbFilePath :: String}   deriving (Generic)
+  dbFilePath :: String} deriving (Generic)
 
 type AppHandler = ReaderT AppState IO
 

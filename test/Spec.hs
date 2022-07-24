@@ -98,3 +98,23 @@ spec = do
         let newChain = addBlock newBlock chain
         print newBlock
         checkValidHashDifficulty (B.hash newBlock) diff `shouldBe` True
+
+  describe "MessageHandler" $ do
+    it "adds block correctly" $ do
+        let chain = [] :: BlockChain
+        let pubAddr = PublicAddress "Addr"
+        let diff = Difficulty 0
+        let nonce = Nonce 1
+        newBlock <- mineBlock pubAddr diff chain nonce
+        let newChain = addBlock newBlock chain
+        (R.length newChain) `shouldBe` 1
+    
+    it "mines block correctly" $ do
+        let chain = [] :: BlockChain
+        let pubAddr = PublicAddress "Addr"
+        let diff = Difficulty 2
+        let nonce = Nonce 1
+        newBlock <- mineBlock pubAddr diff chain nonce
+        let newChain = addBlock newBlock chain
+        print newBlock
+        checkValidHashDifficulty (B.hash newBlock) diff `shouldBe` True

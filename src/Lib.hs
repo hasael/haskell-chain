@@ -108,13 +108,6 @@ readBlock =  eitherDecodeStrict
 readMsg :: ByteString -> Either String Message
 readMsg =  eitherDecodeStrict
 
---sendMessage :: Peer -> Message -> IO ()
---sendMessage peer msg = do
---  sendMsgIo <- tryIO $ sendMessageInner peer msg
---  case sendMsgIo of
---    Right a -> return a
---    Left e -> void (print e)
-
 sendMessage :: Peer -> Message -> IO (Either IOException ())
 sendMessage peer msg = tryIO $ do
      putStrLn $ "Sending message" ++ show msg ++ " to " ++ show peer
