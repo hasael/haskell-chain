@@ -37,10 +37,14 @@ library
       TimeService
       Transaction
       Wallet
+      AppAPI
+      HttpAPI
+      Server
   other-modules:
       Paths_haskell_chain
   hs-source-dirs:
       src
+      src/api
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -50,12 +54,16 @@ library
     , cryptonite
     , higher-leveldb
     , memory
+    , mtl
     , network-simple
     , rio
+    , servant-server
     , stm
     , transformers
     , unix
     , utf8-string
+    , wai
+    , warp
   default-language: Haskell2010
 
 executable haskell-chain-exe
@@ -76,12 +84,16 @@ executable haskell-chain-exe
     , haskell-chain
     , higher-leveldb
     , memory
+    , mtl
     , network-simple
     , rio
+    , servant-server
     , stm
     , transformers
     , unix
     , utf8-string
+    , wai
+    , warp
     , yaml
   default-language: Haskell2010
 
@@ -105,10 +117,14 @@ test-suite haskell-chain-test
     , higher-leveldb
     , hspec
     , memory
+    , mtl
     , network-simple
     , rio
+    , servant-server
     , stm
     , transformers
     , unix
     , utf8-string
+    , wai
+    , warp
   default-language: Haskell2010

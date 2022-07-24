@@ -33,10 +33,16 @@ dependencies:
 - utf8-string
 - unix
 - higher-leveldb
+- servant-server
 - containers
+- mtl
+- wai
+- warp
 
 library:
-  source-dirs: src
+  source-dirs: 
+  - src
+  - src/api
 
 executables:
   haskell-chain-exe:
