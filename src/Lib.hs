@@ -21,11 +21,13 @@ import Database.LevelDB.Higher
 import qualified Codec.Binary.UTF8.String as Utf8
 import DbRepository
 import Data.Map
+import HttpAPI
 
 startPeer :: Int -> Int -> Int -> [(String, Int)] -> String -> Int -> IO ()
 startPeer mineFrequency difficulty localPort peersData dbFilePath delay  = do
   let peers = uncurry peerFromData <$> peersData
   appState <- newAppState difficulty localPort peers dbFilePath
+  startApp 3080 appState
   runReaderT (startUp mineFrequency) appState
 
 startUp :: Int -> AppHandler ()

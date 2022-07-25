@@ -13,9 +13,6 @@ import System.Environment
 import AppConfig
 import Prelude (print, head)
 import Models (IPAddress(getIpAddr), Port (getPort))
-import HttpAPI
-import HttpAPI (startApp)
-
 
 main :: IO ()
 main = do 
@@ -33,7 +30,6 @@ readConfig = decodeFileThrow
 
 start :: FilePath -> IO ()
 start config = do
-                startApp 3080
                 appConfig <- readConfig config
                 let p = peers $ tcpConfig appConfig 
                 let ips = getIpAddr . ipAddress  <$> p

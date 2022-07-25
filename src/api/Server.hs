@@ -8,12 +8,13 @@ import Servant
 import Transaction (Transaction)
 import AppAPI 
 import Control.Monad.Except
+import AppState (AppHandler)
 
-server :: (MonadError ServerError m)  =>  ServerT API m
+server :: ServerT API AppHandler
 server = transactionServer
 
-transactionServer :: (MonadError ServerError m)  => ServerT TransactionsAPI m
+transactionServer :: ServerT TransactionsAPI AppHandler
 transactionServer = receiveTransaction
 
-receiveTransaction :: (MonadError ServerError m) => Transaction -> m Transaction
+receiveTransaction :: Transaction -> AppHandler Transaction
 receiveTransaction trx = return trx
