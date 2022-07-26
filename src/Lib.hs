@@ -76,14 +76,14 @@ loadBlocksFromDb = do
   atomically $
     writeTVar (blockChain appState) newChain
 
-mineNewBlock ::  AppHandler ()
+mineBlock ::  AppHandler ()
 mineNewBlock = do
   appState <- ask
   let filePath = dbFilePath appState
   chain <- readTVarIO $ blockChain appState
   let diff = mineDifficulty appState
   let pubKey = publicKey appState
-  newBlock <- liftIO $ mineBlock pubKey diff chain $ Nonce 1
+  newBlock <- liftIO $ mineCoinbaseBlock pubKey diff chain $ Nonce 1
   saveBlock filePath newBlock
   let newChain = addBlock newBlock chain
   atomically $

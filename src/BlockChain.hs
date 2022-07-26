@@ -25,18 +25,11 @@ nextIndex chain = BlockIndex $ (+1) $ length chain
 currentIndex :: BlockChain -> BlockIndex
 currentIndex chain = BlockIndex $ length chain
 
-mineBlock :: MonadIO m => PublicAddress -> Difficulty -> BlockChain -> Nonce -> m Block
-mineBlock publicAddress diff chain nonce = do
-    timeStamp <- liftIO getTimeStamp
-    let lastIdx = nextIndex chain
-    let version = BlockVersion 1
+mineCoinbaseBlock :: MonadIO m => PublicAddress -> Difficulty -> BlockChain -> Nonce -> m Block
+mineCoinbaseBlock publicAddress diff chain nonce = do
     coinbaseTrx <- createCoinbaseTrx publicAddress 10
-    let hashValue = calculateHash lastIdx diff timeStamp nonce [coinbaseTrx]
-    let valid = checkValidHashDifficulty hashValue diff 
-    if valid then 
-        return $ Block lastIdx diff hashValue hashValue (Timestamp timeStamp) nonce [coinbaseTrx] version
-    else
-        mineBlock publicAddress diff chain (nonce + 1)
+    mineTrxsBlock publicAddress [coinbaseTrx] diff chain nonce
+
 
 mineTrxsBlock :: MonadIO m => PublicAddress -> [Transaction] -> Difficulty -> BlockChain -> Nonce -> m Block
 mineTrxsBlock publicAddress trxs diff chain nonce = do
