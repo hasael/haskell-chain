@@ -86,7 +86,7 @@ spec = do
         let pubAddr = PublicAddress "Addr"
         let diff = Difficulty 0
         let nonce = Nonce 1
-        newBlock <- mineBlock pubAddr diff chain nonce
+        newBlock <- mineCoinbaseBlock pubAddr diff chain nonce
         let newChain = addBlock newBlock chain
         (R.length newChain) `shouldBe` 1
 
@@ -95,7 +95,7 @@ spec = do
         let pubAddr = PublicAddress "Addr"
         let diff = Difficulty 2
         let nonce = Nonce 1
-        newBlock <- mineBlock pubAddr diff chain nonce
+        newBlock <- mineCoinbaseBlock pubAddr diff chain nonce
         let newChain = addBlock newBlock chain
         checkValidHashDifficulty (B.hash newBlock) diff `shouldBe` True
 
@@ -126,7 +126,7 @@ spec = do
         let pubAddr = PublicAddress "Addr"
         let diff = Difficulty 0
         let nonce = Nonce 1
-        newBlock <- mineBlock pubAddr diff chain nonce
+        newBlock <- mineCoinbaseBlock pubAddr diff chain nonce
         let newChain = addBlock newBlock chain
         (R.length newChain) `shouldBe` 1
 
@@ -135,6 +135,6 @@ spec = do
         let pubAddr = PublicAddress "Addr"
         let diff = Difficulty 2
         let nonce = Nonce 1
-        newBlock <- mineBlock pubAddr diff chain nonce
+        newBlock <- mineCoinbaseBlock pubAddr diff chain nonce
         let newChain = addBlock newBlock chain
         checkValidHashDifficulty (B.hash newBlock) diff `shouldBe` True

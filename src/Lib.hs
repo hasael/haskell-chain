@@ -76,7 +76,7 @@ loadBlocksFromDb = do
   atomically $
     writeTVar (blockChain appState) newChain
 
-mineBlock ::  AppHandler ()
+mineNewBlock ::  AppHandler ()
 mineNewBlock = do
   appState <- ask
   let filePath = dbFilePath appState
