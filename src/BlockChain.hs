@@ -31,16 +31,28 @@ mineBlock publicAddress diff chain nonce = do
     let lastIdx = nextIndex chain
     let version = BlockVersion 1
     coinbaseTrx <- createCoinbaseTrx publicAddress 10
-    let hashValue = calculateHash lastIdx diff timeStamp nonce coinbaseTrx
+    let hashValue = calculateHash lastIdx diff timeStamp nonce [coinbaseTrx]
     let valid = checkValidHashDifficulty hashValue diff 
     if valid then 
         return $ Block lastIdx diff hashValue hashValue (Timestamp timeStamp) nonce [coinbaseTrx] version
     else
         mineBlock publicAddress diff chain (nonce + 1)
 
+mineTrxsBlock :: MonadIO m => PublicAddress -> [Transaction] -> Difficulty -> BlockChain -> Nonce -> m Block
+mineTrxsBlock publicAddress trxs diff chain nonce = do
+    timeStamp <- liftIO getTimeStamp
+    let lastIdx = nextIndex chain
+    let version = BlockVersion 1
+    let hashValue = calculateHash lastIdx diff timeStamp nonce trxs
+    let valid = checkValidHashDifficulty hashValue diff 
+    if valid then 
+        return $ Block lastIdx diff hashValue hashValue (Timestamp timeStamp) nonce trxs version
+    else
+        mineTrxsBlock publicAddress trxs diff chain (nonce + 1)
 
-calculateHash :: BlockIndex -> Difficulty -> Int64 -> Nonce -> Transaction -> HashValue
-calculateHash lastIdx difficulty timeStamp nonce trx = HashValue $  hashContent $ show lastIdx ++ show difficulty ++ show timeStamp ++ show nonce ++ show trx
+
+calculateHash :: BlockIndex -> Difficulty -> Int64 -> Nonce -> [Transaction] -> HashValue
+calculateHash lastIdx difficulty timeStamp nonce trx = HashValue $  hashContent $ show lastIdx ++ show difficulty ++ show timeStamp ++ show nonce ++ unlines ( show <$> trx)
 
 checkValidHashDifficulty :: HashValue -> Difficulty -> Bool
 checkValidHashDifficulty hashValue difficulty = take (M.difficulty difficulty) (M.hashValue hashValue) == replicate (M.difficulty difficulty) '0'

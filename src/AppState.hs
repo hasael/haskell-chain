@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module AppState where
-import RIO (ReaderT, TVar, atomically, readTVar, MonadIO, writeTVar)
+import RIO (ReaderT, TVar, atomically, readTVar, MonadIO, writeTVar, readTVarIO)
 import GHC.Generics (Generic)
 import Data.Aeson ( FromJSON, ToJSON )
 import RIO.List (headMaybe)
@@ -11,9 +11,12 @@ import Block
 import Control.Monad
 import Data.Map (Map, insert)
 import Messages (MessageData(chainSize))
+import Transaction
+import Control.Concurrent.STM (TArray)
 
 data AppState = AppState {
   appPeers :: TVar [Peer],
+  trxPool :: TVar [Transaction],
   peersState :: TVar (Map Peer Int),
   appLocalPort :: Int,
   blockChain :: TVar BlockChain,
@@ -115,3 +118,13 @@ getPeersState :: MonadIO m => AppState -> m (Map Peer Int)
 getPeersState appState = do
     atomically $ do
         readTVar $ peersState appState
+
+addToTrxPool :: MonadIO m => AppState -> Transaction -> m()
+addToTrxPool appState trx = do
+    atomically $ do
+        trxs <- readTVar $ trxPool appState
+        let newTrxs = trxs ++ [trx]
+        writeTVar (trxPool appState) newTrxs
+
+getTrxPool :: MonadIO m => AppState -> m [Transaction]
+getTrxPool appState = atomically $ do readTVar $ trxPool appState

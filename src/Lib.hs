@@ -22,6 +22,7 @@ import qualified Codec.Binary.UTF8.String as Utf8
 import DbRepository
 import Data.Map
 import HttpAPI
+import qualified Transaction as T
 
 startPeer :: Int -> Int -> Int -> [(String, Int)] -> String -> Int -> IO ()
 startPeer mineFrequency difficulty localPort peersData dbFilePath delay  = do
@@ -51,9 +52,10 @@ newAppState diff localPort peers dbFilePath = do
     appPeers <- newTVarIO peers
     keys <- liftIO $ getOrUpdateWalletKeys dbFilePath
     chain <- newTVarIO []
+    trxPool <- newTVarIO []
     peerState <- newTVarIO empty
     let difficulty = Difficulty diff
-    return $ AppState appPeers peerState localPort chain difficulty (fst keys) (snd keys) dbFilePath
+    return $ AppState appPeers trxPool peerState localPort chain difficulty (fst keys) (snd keys) dbFilePath
 
 mineBlockProcess :: Int -> AppHandler ()
 mineBlockProcess frequency = do
@@ -88,6 +90,20 @@ mineNewBlock = do
     writeTVar (blockChain appState) newChain
   return ()
 
+mineNewBlockTrxs :: [T.Transaction] -> AppHandler ()
+mineNewBlockTrxs trxs = do
+  appState <- ask
+  let filePath = dbFilePath appState
+  chain <- readTVarIO $ blockChain appState
+  let diff = mineDifficulty appState
+  let pubKey = publicKey appState
+  newBlock <- liftIO $ mineTrxsBlock pubKey  trxs diff chain $ Nonce 1
+  saveBlock filePath newBlock
+  let newChain = addBlock newBlock chain
+  atomically $
+    writeTVar (blockChain appState) newChain
+  return ()
+
 
 serveFunc :: Int -> AppHandler ()
 serveFunc port = do
@@ -116,6 +132,13 @@ sendMessage peer msg = tryIO $ do
      connect (getIpAddr $ ipAddress peer) (show $ getPort $ peerPort peer) $ \(connectionSocket, remoteAddr) -> do
        send connectionSocket $ toStrict $ encode msg
        closeSock connectionSocket
+
+checkTrxPool :: AppHandler ()
+checkTrxPool = do
+  appState <- ask
+  trxs <- getTrxPool appState
+  let trxLen = length trxs
+  if trxLen >= 10 then mineNewBlockTrxs trxs else return ()
 
 ipFromSocketAddress :: SockAddr -> String
 ipFromSocketAddress sockAddr =  head $ wordsWhen (==':') $ show sockAddr
