@@ -60,6 +60,7 @@ newAppState diff localPort peers dbFilePath = do
 mineBlockProcess :: Int -> AppHandler ()
 mineBlockProcess frequency = do
   mineNewBlock
+  checkTrxPool
   appState <- ask
   chain <- readTVarIO $ blockChain appState
   liftIO $ print chain
@@ -138,7 +139,7 @@ checkTrxPool = do
   appState <- ask
   trxs <- getTrxPool appState
   let trxLen = length trxs
-  if trxLen >= 10 then mineNewBlockTrxs trxs else return ()
+  when (trxLen >= 10) $ mineNewBlockTrxs trxs
 
 ipFromSocketAddress :: SockAddr -> String
 ipFromSocketAddress sockAddr =  head $ wordsWhen (==':') $ show sockAddr

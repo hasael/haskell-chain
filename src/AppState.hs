@@ -119,7 +119,7 @@ getPeersState appState = do
     atomically $ do
         readTVar $ peersState appState
 
-addToTrxPool :: MonadIO m => AppState -> Transaction -> m()
+addToTrxPool :: MonadIO m => AppState -> Transaction -> m ()
 addToTrxPool appState trx = do
     atomically $ do
         trxs <- readTVar $ trxPool appState

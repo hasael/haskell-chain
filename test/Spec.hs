@@ -27,6 +27,8 @@ import BlockChain
 import qualified Block as B
 import Models (Difficulty(Difficulty), Nonce (Nonce))
 import HashService (hashContent)
+import AppState
+import Data.Foldable as F
 
 
 main :: IO ()
@@ -138,3 +140,13 @@ spec = do
         newBlock <- mineCoinbaseBlock pubAddr diff chain nonce
         let newChain = addBlock newBlock chain
         checkValidHashDifficulty (B.hash newBlock) diff `shouldBe` True
+
+
+  describe "AppState" $ do
+    it "adds transaction to pool correctly" $ do
+        let testTrx = createTestTrx 11
+        appState <- createTestAppState
+        addToTrxPool appState testTrx
+        newTrxs <- getTrxPool appState
+        F.length newTrxs `shouldBe` 1
+ 
