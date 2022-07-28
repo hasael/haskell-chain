@@ -8,3 +8,8 @@ mineConfig:
   mineFrequency: 60
 dbConfig:
   dbFilePath: "/tmp/chainDb2"
+pollPeersConfig:
+  pingPeersFrequency: 5
+  checkPeersBlocksFrequency: 6
+httpConfig:
+  serverPort: 3080

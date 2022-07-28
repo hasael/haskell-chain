@@ -24,28 +24,28 @@ import Data.Map
 import HttpAPI
 import qualified Transaction as T
 
-startPeer :: Int -> Int -> Int -> [(String, Int)] -> String -> Int -> IO ()
-startPeer mineFrequency difficulty localPort peersData dbFilePath delay  = do
+startPeer :: Int -> Int -> Int -> [(String, Int)] -> String -> Int -> Int -> Port -> IO ()
+startPeer mineFrequency difficulty localPort peersData dbFilePath pingPeersFrequency checkPeersBlocksFrequency httpPort  = do
   let peers = uncurry peerFromData <$> peersData
   appState <- newAppState difficulty localPort peers dbFilePath
-  startApp 3080 appState
-  runReaderT (startUp mineFrequency) appState
+  startApp (getPort httpPort) appState
+  runReaderT (startUp mineFrequency pingPeersFrequency checkPeersBlocksFrequency) appState
 
-startUp :: Int -> AppHandler ()
-startUp mineFrequency = do
+startUp :: Int -> Int -> Int -> AppHandler ()
+startUp mineFrequency pingFrequency checkBlocksFrequency = do
   appState <- ask
   loadBlocksFromDb
-  concurrently_ (mineBlockProcess mineFrequency) $ concurrently_ (serveFunc $ appLocalPort appState) $ concurrently_ checkPeersBlocksProcess pingPeersProcess
+  concurrently_ (mineBlockProcess mineFrequency) $ concurrently_ (serveFunc $ appLocalPort appState) $ concurrently_ (checkPeersBlocksProcess checkBlocksFrequency) (pingPeersProcess pingFrequency)
 
-pingPeersProcess :: AppHandler ()
-pingPeersProcess = pingPeers sendMessage >> threadDelay 5000000 >> pingPeersProcess
+pingPeersProcess :: Int -> AppHandler ()
+pingPeersProcess pingDelay = pingPeers sendMessage >> threadDelay (pingDelay * 1000000) >> pingPeersProcess pingDelay
 
-checkPeersBlocksProcess :: AppHandler ()
-checkPeersBlocksProcess = do
+checkPeersBlocksProcess :: Int -> AppHandler ()
+checkPeersBlocksProcess checkBlocksFrequency = do
   appState <- ask
   liftIO $ checkPeersBlocks sendMessage appState
-  threadDelay 6000000
-  checkPeersBlocksProcess
+  threadDelay $ checkBlocksFrequency * 1000000
+  checkPeersBlocksProcess checkBlocksFrequency
 
 newAppState :: (MonadIO m, MonadRandom m) => Int -> Int -> [Peer] -> String -> m AppState
 newAppState diff localPort peers dbFilePath = do

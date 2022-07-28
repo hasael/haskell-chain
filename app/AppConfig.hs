@@ -11,7 +11,9 @@ import AppState
 data AppConfig = AppConfig
   { tcpConfig :: TCPConfig,
     mineConfig :: MineConfig,
-    dbConfig :: DbConfig
+    dbConfig :: DbConfig,
+    pollPeersConfig :: PollPeers,
+    httpConfig :: HttpConfig
   }
   deriving (Show, Generic)
 
@@ -32,6 +34,12 @@ data DbConfig = DbConfig {
 
 data PeerConfig = PeerConfig {ipAddress :: IPAddress, peerPort :: Port}   deriving (Show, Generic, Eq)
 
+data PollPeers = PollPeers {pingPeersFrequency :: Int, checkPeersBlocksFrequency :: Int}   deriving (Show, Generic, Eq)
+
+data HttpConfig = HttpConfig {serverPort :: Port} deriving (Show, Generic, Eq)
+
+instance FromJSON PollPeers
+instance FromJSON HttpConfig
 instance FromJSON PeerConfig
 instance FromJSON AppConfig
 instance FromJSON TCPConfig

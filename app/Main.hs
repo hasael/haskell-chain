@@ -34,5 +34,5 @@ start config = do
                 let p = peers $ tcpConfig appConfig 
                 let ips = getIpAddr . ipAddress  <$> p
                 let ports = getPort. peerPort  <$> p
-                startPeer (mineFrequency $ mineConfig appConfig) (mineDifficulty $ mineConfig appConfig) (localPort $ tcpConfig appConfig) (zip ips ports) (dbFilePath $ dbConfig appConfig) 10000000
+                startPeer (mineFrequency $ mineConfig appConfig) (mineDifficulty $ mineConfig appConfig) (localPort $ tcpConfig appConfig) (zip ips ports) (dbFilePath $ dbConfig appConfig) (pingPeersFrequency $ pollPeersConfig appConfig) (checkPeersBlocksFrequency $ pollPeersConfig appConfig) (serverPort $ httpConfig appConfig)
 
