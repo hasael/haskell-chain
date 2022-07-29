@@ -4,21 +4,42 @@
 module Server where
 
 import Servant
-
 import Transaction (Transaction)
 import AppAPI 
-import Control.Monad.Except
+import Control.Monad.Except (MonadError, MonadIO(liftIO))
 import AppState 
-import RIO (MonadReader(ask))
+import RIO (MonadReader(ask), IOException, throwIO, try, Exception (toException, fromException))
+import Models (BlockIndex (BlockIndex), HashValue)
+import Block (Block)
 
-server :: ServerT API AppHandler
-server = transactionServer
+server :: ServerT API HttpAppHandler
+server = transactionServer :<|> blockChainServer
 
-transactionServer :: ServerT TransactionsAPI AppHandler
+transactionServer :: ServerT TransactionsAPI HttpAppHandler
 transactionServer = receiveTransaction
 
-receiveTransaction :: Transaction -> AppHandler Transaction
+blockChainServer :: ServerT BlockchainAPI HttpAppHandler
+blockChainServer = getBlockByIndex :<|> chainLength :<|> getBlockByHash
+
+receiveTransaction :: Transaction -> HttpAppHandler Transaction
 receiveTransaction trx = do
     appState <- ask
     liftIO $ addToTrxPool appState trx
     return trx
+
+chainLength :: HttpAppHandler Int
+chainLength = return 1
+
+getBlockByIndex :: BlockIndex -> HttpAppHandler Block
+getBlockByIndex blockIndex = do
+    appState <- ask
+    getBlock blockIndex appState  >>= notFoundResponse
+
+getBlockByHash :: HashValue -> HttpAppHandler Block
+getBlockByHash hash = do
+    appState <- ask
+    getBlock (BlockIndex 1) appState  >>= notFoundResponse
+
+notFoundResponse :: Maybe a -> HttpAppHandler a
+notFoundResponse Nothing = throwError err404
+notFoundResponse (Just r) = return r

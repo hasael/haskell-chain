@@ -1,7 +1,10 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module AppState where
-import RIO (ReaderT, TVar, atomically, readTVar, MonadIO, writeTVar, readTVarIO)
+import RIO (ReaderT, TVar, atomically, readTVar, MonadIO, writeTVar, readTVarIO, MonadThrow)
 import GHC.Generics (Generic)
 import Data.Aeson ( FromJSON, ToJSON )
 import RIO.List (headMaybe)
@@ -13,6 +16,9 @@ import Data.Map (Map, insert)
 import Messages (MessageData(chainSize))
 import Transaction
 import Control.Concurrent.STM (TArray)
+import Control.Monad.Except 
+import RIO (MonadReader(ask), IOException, throwIO, try, Exception (toException, fromException))
+import Servant
 
 data AppState = AppState {
   appPeers :: TVar [Peer],
@@ -25,7 +31,8 @@ data AppState = AppState {
   privateKey :: PrivateKeyValue,
   dbFilePath :: String} deriving (Generic)
 
-type AppHandler = ReaderT AppState IO
+type AppHandler = ReaderT AppState IO 
+type HttpAppHandler = ReaderT AppState Handler 
 
 getStrPeers :: MonadIO m => AppState -> m [String]
 getStrPeers appState = do

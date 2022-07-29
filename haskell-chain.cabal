@@ -60,6 +60,7 @@ library
     , servant-server
     , stm
     , transformers
+    , transformers-base
     , unix
     , utf8-string
     , wai
@@ -90,6 +91,7 @@ executable haskell-chain-exe
     , servant-server
     , stm
     , transformers
+    , transformers-base
     , unix
     , utf8-string
     , wai
@@ -123,6 +125,7 @@ test-suite haskell-chain-test
     , servant-server
     , stm
     , transformers
+    , transformers-base
     , unix
     , utf8-string
     , wai

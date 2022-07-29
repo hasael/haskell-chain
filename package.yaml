@@ -38,6 +38,7 @@ dependencies:
 - mtl
 - wai
 - warp
+- transformers-base
 
 library:
   source-dirs: 
