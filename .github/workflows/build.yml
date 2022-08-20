@@ -31,20 +31,20 @@ jobs:
           ${{ runner.os }}-
     - name: Install leveldb
       run: |
-         # https://github.com/google/leveldb/releases
-         apt-get install libsnappy-dev wget curl build-essential cmake gcc sqlite3
+        # https://github.com/google/leveldb/releases
+        apt-get install libsnappy-dev wget curl build-essential cmake gcc sqlite3
          
-         # Download LevelDB archive file
-         VER=$(curl -s https://api.github.com/repos/google/leveldb/releases/latest | grep tag_name |  cut -d '"' -f 4)
-         wget https://github.com/google/leveldb/archive/${VER}.tar.gz -O leveldb.tar.gz
-         tar xvf leveldb.tar.gz
+        # Download LevelDB archive file
+        VER=$(curl -s https://api.github.com/repos/google/leveldb/releases/latest | grep tag_name |  cut -d '"' -f 4)
+        wget https://github.com/google/leveldb/archive/${VER}.tar.gz -O leveldb.tar.gz
+        tar xvf leveldb.tar.gz
          
-         cd leveldb*/
-         mkdir -p build && cd build
-         cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
+        cd leveldb*/
+        mkdir -p build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
          
-         #---------------old---------------------
-         apt-get install libleveldb-dev leveldb-doc
+        #---------------old---------------------
+        apt-get install libleveldb-dev leveldb-doc
     - name: Install dependencies
       run: |
         cabal update
