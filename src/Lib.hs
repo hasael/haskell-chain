@@ -28,7 +28,7 @@ startPeer :: Int -> Int -> Int -> [(String, Int)] -> String -> Int -> Int -> Por
 startPeer mineFrequency difficulty localPort peersData dbFilePath pingPeersFrequency checkPeersBlocksFrequency httpPort  = do
   let peers = uncurry peerFromData <$> peersData
   appState <- newAppState difficulty localPort peers dbFilePath
-  startApp (getPort httpPort) appState
+  async $ startApp (getPort httpPort) appState
   runReaderT (startUp mineFrequency pingPeersFrequency checkPeersBlocksFrequency) appState
 
 startUp :: Int -> Int -> Int -> AppHandler ()

@@ -1,0 +1,15 @@
+tcpConfig:
+  localPort: 3080
+  peers:
+    - ipAddress: "127.0.0.1"
+      peerPort: 3081
+mineConfig:
+  mineDifficulty: 0
+  mineFrequency: 5
+dbConfig:
+  dbFilePath: "/tmp/testChainDb"
+pollPeersConfig:
+  pingPeersFrequency: 2
+  checkPeersBlocksFrequency: 3
+httpConfig:
+  serverPort: 3085

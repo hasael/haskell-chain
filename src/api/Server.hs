@@ -9,7 +9,7 @@ import AppAPI
 import Control.Monad.Except (MonadError, MonadIO(liftIO))
 import AppState 
 import RIO (MonadReader(ask), IOException, throwIO, try, Exception (toException, fromException))
-import Models (BlockIndex (BlockIndex), HashValue)
+import Models
 import Block (Block)
 
 server :: ServerT API HttpAppHandler
@@ -28,7 +28,10 @@ receiveTransaction trx = do
     return trx
 
 chainLength :: HttpAppHandler Int
-chainLength = return 1
+chainLength = do
+    appState <- ask
+    size <- getChainSize appState
+    return $ blockIndex size
 
 getBlockByIndex :: BlockIndex -> HttpAppHandler Block
 getBlockByIndex blockIndex = do

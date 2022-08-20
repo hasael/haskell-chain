@@ -92,6 +92,15 @@ spec = do
         let newChain = addBlock newBlock chain
         (R.length newChain) `shouldBe` 1
 
+    it "gets size correctly" $ do
+        let chain = [] :: BlockChain
+        let pubAddr = PublicAddress "Addr"
+        let diff = Difficulty 0
+        let nonce = Nonce 1
+        newBlock <- mineCoinbaseBlock pubAddr diff chain nonce
+        let newChain = addBlock newBlock chain
+        (currentIndex newChain) `shouldBe` BlockIndex 1
+
     it "mines block correctly" $ do
         let chain = [] :: BlockChain
         let pubAddr = PublicAddress "Addr"
@@ -141,7 +150,6 @@ spec = do
         let newChain = addBlock newBlock chain
         checkValidHashDifficulty (B.hash newBlock) diff `shouldBe` True
 
-
   describe "AppState" $ do
     it "adds transaction to pool correctly" $ do
         let testTrx = createTestTrx 11
@@ -149,4 +157,16 @@ spec = do
         addToTrxPool appState testTrx
         newTrxs <- getTrxPool appState
         F.length newTrxs `shouldBe` 1
+
+    it "get size of chain correctly" $ do
+        let testTrx = createTestTrx 11
+        let chain = [] :: BlockChain
+        let pubAddr = PublicAddress "Addr"
+        let diff = Difficulty 2
+        let nonce = Nonce 1
+        appState <- createTestAppState
+        newBlock <- mineCoinbaseBlock pubAddr diff chain nonce
+        addNewBlock newBlock appState
+        length <- getChainSize appState
+        length `shouldBe` (BlockIndex 1)
  

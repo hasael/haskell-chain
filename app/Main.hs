@@ -23,6 +23,8 @@ main = do
   case initArg of
     Just "1" -> start "./config/peer1.yaml" 
     Just "2" -> start "./config/peer2.yaml" 
+    Just "3" -> start "./config/test.yaml" 
+    Just a -> start a
     _ -> start "./config/default.yaml"
 
 readConfig :: FilePath -> IO AppConfig
