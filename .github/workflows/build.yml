@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-haskell@v1
       with:
-        ghc-version: '8.10.4'
+        ghc-version: '8.10.1'
         cabal-version: '3.2'
 
     - name: Cache
@@ -29,6 +29,22 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+    - name: Install leveldb
+      run: |
+        # https://github.com/google/leveldb/releases
+        sudo apt-get install libsnappy-dev wget curl build-essential cmake gcc sqlite3
+         
+        # Download LevelDB archive file
+        VER=$(curl -s https://api.github.com/repos/google/leveldb/releases/latest | grep tag_name |  cut -d '"' -f 4)
+        wget https://github.com/google/leveldb/archive/${VER}.tar.gz -O leveldb.tar.gz
+        sudo tar xvf leveldb.tar.gz
+         
+        cd leveldb*/
+        mkdir -p build && cd build
+        sudo cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
+         
+        #---------------old---------------------
+        sudo apt-get install libleveldb-dev leveldb-doc
     - name: Install dependencies
       run: |
         cabal update
