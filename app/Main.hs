@@ -13,6 +13,7 @@ import System.Environment
 import AppConfig
 import Prelude (print, head)
 import Models (IPAddress(getIpAddr), Port (getPort))
+import Data.Yaml.Builder (toByteString)
 
 main :: IO ()
 main = do 
@@ -21,18 +22,20 @@ main = do
   let initArg = if not $ null args then Just $ head args else Nothing 
   print initArg
   case initArg of
-    Just "1" -> start "./config/peer1.yaml" 
-    Just "2" -> start "./config/peer2.yaml" 
-    Just "3" -> start "./config/test.yaml" 
-    Just a -> start a
-    _ -> start "./config/default.yaml"
+    Just "1" -> readConfig "./config/peer1.yaml" >>= start
+    Just "2" -> readConfig "./config/peer2.yaml" >>= start
+    Just "3" -> readConfig "./config/test.yaml" >>= start
+    Just a -> getConfig a >>= start 
+    _ -> readConfig "./config/default.yaml" >>= start
 
 readConfig :: FilePath -> IO AppConfig
 readConfig = decodeFileThrow 
 
-start :: FilePath -> IO ()
-start config = do
-                appConfig <- readConfig config
+getConfig :: String -> IO AppConfig
+getConfig =  decodeThrow . fromString
+
+start :: AppConfig -> IO ()
+start appConfig = do
                 let p = peers $ tcpConfig appConfig 
                 let ips = getIpAddr . ipAddress  <$> p
                 let ports = getPort. peerPort  <$> p
