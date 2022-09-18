@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: root-node-config
+data:
+  chainConfig: "{'tcpConfig':{'localPort':30080,'peers':[]},'mineConfig':{'mineDifficulty':2,'mineFrequency':60},'dbConfig':{'dbFilePath':'/tmp/chainDb'},'pollPeersConfig':{'pingPeersFrequency':5,'checkPeersBlocksFrequency':6},'httpConfig':{'serverPort':3088}}"
