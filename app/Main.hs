@@ -25,14 +25,16 @@ main = do
     Just "1" -> readConfig "./config/peer1.yaml" >>= start
     Just "2" -> readConfig "./config/peer2.yaml" >>= start
     Just "3" -> readConfig "./config/test.yaml" >>= start
-    Just a -> getConfig a >>= start 
-    _ -> readConfig "./config/default.yaml" >>= start
+    _ -> getConfigFromEnv >>= start 
+    --_ -> readConfig "./config/default.yaml" >>= start
 
 readConfig :: FilePath -> IO AppConfig
 readConfig = decodeFileThrow 
 
-getConfig :: String -> IO AppConfig
-getConfig =  decodeThrow . fromString
+getConfigFromEnv:: IO AppConfig
+getConfigFromEnv = do
+   envValue <- getEnv "CHAIN_CONFIG" 
+   decodeThrow $ fromString envValue
 
 start :: AppConfig -> IO ()
 start appConfig = do
